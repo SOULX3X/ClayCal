@@ -1,0 +1,270 @@
+name: Build & Release APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - '.github/workflows/!(release.yml)'
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type (patch, minor, major, or keep current)'
+        required: false
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - none
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build, Version & Release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradlew Executable
+        run: |
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+          else
+            gradle wrapper
+            chmod +x ./gradlew
+          fi
+
+      - name: Compute New Version & Update build.gradle.kts
+        id: versioning
+        run: |
+          # 1. Read current version from app/build.gradle.kts
+          CURRENT_CODE=$(grep -oE 'versionCode = [0-9]+' app/build.gradle.kts | awk '{print $3}')
+          CURRENT_NAME=$(grep -oE 'versionName = "[^"]+"' app/build.gradle.kts | sed -E 's/versionName = "([^"]+)"/\1/')
+
+          echo "Current versionCode: ${CURRENT_CODE:-1}"
+          echo "Current versionName: ${CURRENT_NAME:-1.0.0}"
+
+          # Default fallbacks
+          [ -z "$CURRENT_CODE" ] && CURRENT_CODE=1
+          [ -z "$CURRENT_NAME" ] && CURRENT_NAME="1.0.0"
+
+          # 2. Parse major, minor, patch
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_NAME"
+          [ -z "$MAJOR" ] && MAJOR=1
+          [ -z "$MINOR" ] && MINOR=0
+          [ -z "$PATCH" ] && PATCH=0
+
+          # Strip any pre-release tags or non-numeric characters for calculation
+          PATCH_NUM=$(echo "$PATCH" | grep -oE '^[0-9]+' || echo "0")
+          [ -z "$PATCH_NUM" ] && PATCH_NUM=0
+
+          # Determine bump type
+          BUMP_TYPE="${{ github.event.inputs.version_bump }}"
+          [ -z "$BUMP_TYPE" ] && BUMP_TYPE="patch"
+
+          if [ "$BUMP_TYPE" = "major" ]; then
+            NEW_MAJOR=$((MAJOR + 1))
+            NEW_MINOR=0
+            NEW_PATCH=0
+          elif [ "$BUMP_TYPE" = "minor" ]; then
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$((MINOR + 1))
+            NEW_PATCH=0
+          elif [ "$BUMP_TYPE" = "none" ]; then
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$MINOR
+            NEW_PATCH=$PATCH_NUM
+          else
+            # Default patch bump
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$MINOR
+            NEW_PATCH=$((PATCH_NUM + 1))
+          fi
+
+          NEW_VERSION_NAME="${NEW_MAJOR}.${NEW_MINOR}.${NEW_PATCH}"
+          
+          # Increment versionCode (ensure it's greater than current and at least run number)
+          RUN_NUM=${{ github.run_number }}
+          NEXT_CODE=$((CURRENT_CODE + 1))
+          if [ "$RUN_NUM" -gt "$NEXT_CODE" ]; then
+            NEW_VERSION_CODE=$RUN_NUM
+          else
+            NEW_VERSION_CODE=$NEXT_CODE
+          fi
+
+          echo "New versionCode: $NEW_VERSION_CODE"
+          echo "New versionName: $NEW_VERSION_NAME"
+
+          # 3. Update app/build.gradle.kts
+          sed -i -E "s/versionCode = [0-9]+/versionCode = $NEW_VERSION_CODE/" app/build.gradle.kts
+          sed -i -E "s/versionName = \"[^\"]+\"/versionName = \"$NEW_VERSION_NAME\"/" app/build.gradle.kts
+
+          # Export to environment and outputs
+          echo "NEW_VERSION_CODE=$NEW_VERSION_CODE" >> $GITHUB_ENV
+          echo "NEW_VERSION_NAME=$NEW_VERSION_NAME" >> $GITHUB_ENV
+          echo "RELEASE_TAG=v$NEW_VERSION_NAME" >> $GITHUB_ENV
+          echo "version_name=$NEW_VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "version_code=$NEW_VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "release_tag=v$NEW_VERSION_NAME" >> $GITHUB_OUTPUT
+
+      - name: Generate Commits Changelog & Release Notes
+        id: changelog
+        run: |
+          # Find the previous release tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          fi
+
+          echo "Previous tag: ${PREV_TAG:-none}"
+
+          # Extract commit logs
+          if [ -n "$PREV_TAG" ]; then
+            COMMIT_LOG=$(git log ${PREV_TAG}..HEAD --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H)) by @%an" --no-merges)
+          else
+            COMMIT_LOG=$(git log -n 15 --pretty=format:"* %s ([%h](https://github.com/${{ github.repository }}/commit/%H)) by @%an" --no-merges)
+          fi
+
+          if [ -z "$COMMIT_LOG" ]; then
+            COMMIT_LOG="* Routine updates and improvements."
+          fi
+
+          # Prepare Release Notes Markdown
+          cat << 'EOF' > release_notes.md
+          ## 📱 Clay Calendar - Release v${{ env.NEW_VERSION_NAME }}
+
+          **Build:** Version `${{ env.NEW_VERSION_NAME }}` (Code: `${{ env.NEW_VERSION_CODE }}`)
+          **Commit:** `${{ github.sha }}`
+
+          ---
+
+          ### 📝 What's New in this Build
+          EOF
+
+          # Replace variable placeholder in header
+          sed -i "s/\${{ env.NEW_VERSION_NAME }}/$NEW_VERSION_NAME/g" release_notes.md
+          sed -i "s/\${{ env.NEW_VERSION_CODE }}/$NEW_VERSION_CODE/g" release_notes.md
+          sed -i "s/\${{ github.sha }}/${{ github.sha }}/g" release_notes.md
+
+          echo "$COMMIT_LOG" >> release_notes.md
+
+          cat << 'EOF' >> release_notes.md
+
+          ---
+
+          ### ⬇️ Download & Install
+          Download **`ClayCalendar-v${{ env.NEW_VERSION_NAME }}.apk`** from the Assets section below and open it on your Android device.
+          EOF
+          sed -i "s/\${{ env.NEW_VERSION_NAME }}/$NEW_VERSION_NAME/g" release_notes.md
+
+          echo "Release notes generated:"
+          cat release_notes.md
+
+      - name: Setup Keystore & Environment Files
+        run: |
+          # Ensure .env file exists for secrets gradle plugin
+          touch .env
+          if [ ! -f ".env.example" ]; then
+            touch .env.example
+          fi
+
+          # Check if secret signing key is provided, otherwise generate a secure release key
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "Using repository signing keystore secret..."
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "$GITHUB_WORKSPACE/my-upload-key.jks"
+            echo "KEYSTORE_PATH=$GITHUB_WORKSPACE/my-upload-key.jks" >> $GITHUB_ENV
+            echo "STORE_PASSWORD=${{ secrets.STORE_PASSWORD }}" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
+          else
+            echo "No custom keystore secret detected. Generating standalone release keystore..."
+            keytool -genkeypair -v \
+              -keystore "$GITHUB_WORKSPACE/my-upload-key.jks" \
+              -alias upload \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass android \
+              -keypass android \
+              -dname "CN=ClayCalendar, OU=App, O=AIStudio, L=MountainView, S=CA, C=US"
+            echo "KEYSTORE_PATH=$GITHUB_WORKSPACE/my-upload-key.jks" >> $GITHUB_ENV
+            echo "STORE_PASSWORD=android" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=android" >> $GITHUB_ENV
+          fi
+
+      - name: Build Release APK
+        run: |
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Prepare APK Asset & Calculate Checksums
+        run: |
+          APK_SRC=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          if [ -z "$APK_SRC" ]; then
+            echo "Error: Release APK not found!"
+            exit 1
+          fi
+
+          TARGET_APK="ClayCalendar-v${NEW_VERSION_NAME}.apk"
+          cp "$APK_SRC" "$TARGET_APK"
+          echo "Target APK created: $TARGET_APK"
+
+          # Calculate SHA-256 and file size
+          APK_SIZE=$(ls -lh "$TARGET_APK" | awk '{print $5}')
+          APK_SHA256=$(sha256sum "$TARGET_APK" | awk '{print $1}')
+
+          echo "" >> release_notes.md
+          echo "**File:** \`$TARGET_APK\` ($APK_SIZE)" >> release_notes.md
+          echo "**SHA-256:** \`$APK_SHA256\`" >> release_notes.md
+
+      - name: Commit & Push Version Bump
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.version_bump != 'none')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Stage and commit version update
+          git add app/build.gradle.kts
+          git commit -m "chore(release): bump version to v${NEW_VERSION_NAME} [skip ci]" || echo "No version changes to commit"
+          
+          # Push changes back to current branch
+          git push origin HEAD:${{ github.ref_name }} || echo "Could not push back commit, continuing with release tag"
+
+      - name: Create Git Tag
+        run: |
+          git tag -a "${RELEASE_TAG}" -m "Release ${RELEASE_TAG}"
+          git push origin "${RELEASE_TAG}" --force || echo "Tag pushed or already exists"
+
+      - name: Create GitHub Release with APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: "Clay Calendar v${{ env.NEW_VERSION_NAME }}"
+          body_path: release_notes.md
+          files: |
+            ClayCalendar-v${{ env.NEW_VERSION_NAME }}.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
