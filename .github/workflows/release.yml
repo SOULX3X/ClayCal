@@ -152,33 +152,23 @@ jobs:
             COMMIT_LOG="* Routine updates and improvements."
           fi
 
-          # Prepare Release Notes Markdown
-          cat << 'EOF' > release_notes.md
-          ## 📱 Clay Calendar - Release v${{ env.NEW_VERSION_NAME }}
-
-          **Build:** Version `${{ env.NEW_VERSION_NAME }}` (Code: `${{ env.NEW_VERSION_CODE }}`)
-          **Commit:** `${{ github.sha }}`
-
-          ---
-
-          ### 📝 What's New in this Build
-          EOF
-
-          # Replace variable placeholder in header
-          sed -i "s/\${{ env.NEW_VERSION_NAME }}/$NEW_VERSION_NAME/g" release_notes.md
-          sed -i "s/\${{ env.NEW_VERSION_CODE }}/$NEW_VERSION_CODE/g" release_notes.md
-          sed -i "s/\${{ github.sha }}/${{ github.sha }}/g" release_notes.md
-
-          echo "$COMMIT_LOG" >> release_notes.md
-
-          cat << 'EOF' >> release_notes.md
-
-          ---
-
-          ### ⬇️ Download & Install
-          Download **`ClayCalendar-v${{ env.NEW_VERSION_NAME }}.apk`** from the Assets section below and open it on your Android device.
-          EOF
-          sed -i "s/\${{ env.NEW_VERSION_NAME }}/$NEW_VERSION_NAME/g" release_notes.md
+          # Generate Release Notes Markdown directly without sed
+          {
+            echo "## 📱 Clay Calendar - Release v${NEW_VERSION_NAME}"
+            echo ""
+            echo "**Build:** Version \`${NEW_VERSION_NAME}\` (Code: \`${NEW_VERSION_CODE}\`)"
+            echo "**Commit:** \`${{ github.sha }}\`"
+            echo ""
+            echo "---"
+            echo ""
+            echo "### 📝 What's New in this Build"
+            echo "$COMMIT_LOG"
+            echo ""
+            echo "---"
+            echo ""
+            echo "### ⬇️ Download & Install"
+            echo "Download **\`ClayCalendar-v${NEW_VERSION_NAME}.apk\`** from the Assets section below and open it on your Android device."
+          } > release_notes.md
 
           echo "Release notes generated:"
           cat release_notes.md
