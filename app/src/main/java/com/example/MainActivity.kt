@@ -26,8 +26,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -42,6 +46,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.data.AppThemeMode
 import com.example.model.SimpleDate
 import com.example.model.SimpleTime
 import com.example.ui.calendar.CalendarHeader
@@ -53,6 +58,7 @@ import com.example.ui.calendar.EventDetailDialog
 import com.example.ui.calendar.EventDialog
 import com.example.ui.calendar.MonthView
 import com.example.ui.calendar.ScheduleView
+import com.example.ui.calendar.SettingsDialog
 import com.example.ui.calendar.WeekView
 import com.example.ui.clay.ClayColors
 import com.example.ui.theme.MyApplicationTheme
@@ -62,8 +68,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MyApplicationTheme {
-                CalendarApp()
+            val viewModel: CalendarViewModel = viewModel()
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            val systemDark = isSystemInDarkTheme()
+            val isDark = when (uiState.themeMode) {
+                AppThemeMode.LIGHT -> false
+                AppThemeMode.DARK -> true
+                AppThemeMode.SYSTEM -> systemDark
+            }
+
+            MyApplicationTheme(darkTheme = isDark) {
+                CalendarApp(viewModel = viewModel)
             }
         }
     }
@@ -74,6 +89,14 @@ fun CalendarApp(
     viewModel: CalendarViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.snackbarMessage) {
+        uiState.snackbarMessage?.let { msg ->
+            snackbarHostState.showSnackbar(msg)
+            viewModel.clearSnackbar()
+        }
+    }
 
     Scaffold(
         modifier = Modifier
@@ -82,9 +105,11 @@ fun CalendarApp(
             .statusBarsPadding()
             .navigationBarsPadding(),
         containerColor = ClayColors.Background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             ClayFloatingActionButton(
                 onClick = { viewModel.openCreateDialog() },
+                containerColor = ClayColors.PrimaryAccent,
                 modifier = Modifier.testTag("fab_add_event")
             )
         }
@@ -102,7 +127,8 @@ fun CalendarApp(
                 onJumpToToday = { viewModel.jumpToToday() },
                 onViewModeSelected = { viewModel.setViewMode(it) },
                 onToggleSearch = { viewModel.toggleSearch(it) },
-                onSearchQueryChange = { viewModel.setSearchQuery(it) }
+                onSearchQueryChange = { viewModel.setSearchQuery(it) },
+                onOpenSettings = { viewModel.openSettings() }
             )
 
             // Optional Quick Stats Banner (shown when search is inactive and in Month or Schedule view)
@@ -204,13 +230,29 @@ fun CalendarApp(
                 onDelete = { viewModel.deleteEvent(event.id) }
             )
         }
+
+        // Settings Dialog
+        if (uiState.isSettingsOpen) {
+            SettingsDialog(
+                currentThemeMode = uiState.themeMode,
+                activeAccent = uiState.activeAccent,
+                eventsCount = uiState.allEvents.size,
+                onThemeModeChange = { viewModel.setThemeMode(it) },
+                onAccentChange = { viewModel.setAccentPalette(it) },
+                onExportJson = { viewModel.exportEventsJson() },
+                onImportJson = { json, replace -> viewModel.importEvents(json, replace) },
+                onDeleteAllData = { viewModel.deleteAllData() },
+                onDismiss = { viewModel.closeSettings() }
+            )
+        }
     }
 }
 
 @Composable
 fun ClayFloatingActionButton(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    containerColor: Color = ClayColors.PrimaryAccent
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -228,10 +270,10 @@ fun ClayFloatingActionButton(
             .shadow(
                 elevation = if (isPressed) 3.dp else 10.dp,
                 shape = shape,
-                ambientColor = ClayColors.ClayTerracotta.copy(alpha = 0.4f),
-                spotColor = ClayColors.ClayTerracotta.copy(alpha = 0.45f)
+                ambientColor = containerColor.copy(alpha = 0.4f),
+                spotColor = containerColor.copy(alpha = 0.45f)
             )
-            .background(ClayColors.ClayTerracotta, shape = shape)
+            .background(containerColor, shape = shape)
             .border(
                 width = 2.dp,
                 brush = Brush.linearGradient(

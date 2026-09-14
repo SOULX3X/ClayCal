@@ -5,12 +5,16 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.data.AppThemeMode
 import com.example.data.CalendarDatabase
+import com.example.data.CalendarDataTransfer
 import com.example.data.CalendarRepository
+import com.example.data.ThemePreferences
 import com.example.model.CalendarEvent
 import com.example.model.Category
 import com.example.model.SimpleDate
 import com.example.model.SimpleTime
+import com.example.ui.clay.ClayColors
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +33,10 @@ data class CalendarUiState(
     val isSearchActive: Boolean = false,
     val selectedCategory: String? = null,
     val isCreateDialogOpen: Boolean = false,
+    val isSettingsOpen: Boolean = false,
+    val themeMode: AppThemeMode = AppThemeMode.SYSTEM,
+    val activeAccent: String = "Terracotta",
+    val snackbarMessage: String? = null,
     val editingEvent: CalendarEvent? = null,
     val detailEvent: CalendarEvent? = null,
     val allEvents: List<CalendarEvent> = emptyList()
@@ -87,6 +95,7 @@ data class CalendarUiState(
 class CalendarViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: CalendarRepository
+    private val themePreferences = ThemePreferences(application)
 
     private val _uiState = MutableStateFlow(CalendarUiState())
     val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
@@ -94,6 +103,12 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     init {
         val database = CalendarDatabase.getDatabase(application, viewModelScope)
         repository = CalendarRepository(database.calendarDao())
+
+        // Load persisted theme
+        val savedMode = themePreferences.themeMode
+        val savedAccent = themePreferences.accentPalette
+        ClayColors.activeAccentName = savedAccent
+        _uiState.update { it.copy(themeMode = savedMode, activeAccent = savedAccent) }
 
         // Collect all events from database
         viewModelScope.launch {
@@ -271,5 +286,64 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                 }
             }
         }
+    }
+
+    fun openSettings() {
+        _uiState.update { it.copy(isSettingsOpen = true) }
+    }
+
+    fun closeSettings() {
+        _uiState.update { it.copy(isSettingsOpen = false) }
+    }
+
+    fun setThemeMode(mode: AppThemeMode) {
+        themePreferences.themeMode = mode
+        _uiState.update { it.copy(themeMode = mode) }
+    }
+
+    fun setAccentPalette(name: String) {
+        themePreferences.accentPalette = name
+        ClayColors.activeAccentName = name
+        _uiState.update { it.copy(activeAccent = name) }
+    }
+
+    fun exportEventsJson(): String {
+        return CalendarDataTransfer.exportToJson(_uiState.value.allEvents)
+    }
+
+    fun importEvents(jsonString: String, replaceExisting: Boolean): Result<Int> {
+        val parseResult = CalendarDataTransfer.importFromJson(jsonString)
+        return parseResult.map { events ->
+            viewModelScope.launch {
+                if (replaceExisting) {
+                    repository.deleteAll()
+                }
+                repository.insertAll(events)
+                showSnackbar("Successfully imported ${events.size} events")
+            }
+            events.size
+        }
+    }
+
+    fun deleteAllData() {
+        viewModelScope.launch {
+            repository.deleteAll()
+            _uiState.update {
+                it.copy(
+                    allEvents = emptyList(),
+                    detailEvent = null,
+                    editingEvent = null
+                )
+            }
+            showSnackbar("All calendar data has been removed")
+        }
+    }
+
+    fun showSnackbar(message: String) {
+        _uiState.update { it.copy(snackbarMessage = message) }
+    }
+
+    fun clearSnackbar() {
+        _uiState.update { it.copy(snackbarMessage = null) }
     }
 }

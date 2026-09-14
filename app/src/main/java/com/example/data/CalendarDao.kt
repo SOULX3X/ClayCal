@@ -24,6 +24,9 @@ interface CalendarDao {
     @Query("SELECT * FROM events WHERE id = :id LIMIT 1")
     suspend fun getEventById(id: Long): CalendarEvent?
 
+    @Query("SELECT * FROM events ORDER BY year ASC, month ASC, day ASC, startHour ASC, startMinute ASC")
+    suspend fun getAllEventsList(): List<CalendarEvent>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEvent(event: CalendarEvent): Long
 
@@ -38,6 +41,9 @@ interface CalendarDao {
 
     @Query("DELETE FROM events WHERE id = :id")
     suspend fun deleteEventById(id: Long)
+
+    @Query("DELETE FROM events")
+    suspend fun deleteAllEvents()
 
     @Query("UPDATE events SET isCompleted = :isCompleted WHERE id = :id")
     suspend fun updateCompletedStatus(id: Long, isCompleted: Boolean)

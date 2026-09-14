@@ -24,6 +24,15 @@ class CalendarRepository(private val dao: CalendarDao) {
     suspend fun deleteById(id: Long) =
         dao.deleteEventById(id)
 
+    suspend fun deleteAll() =
+        dao.deleteAllEvents()
+
+    suspend fun getAllList(): List<CalendarEvent> =
+        dao.getAllEventsList()
+
+    suspend fun insertAll(events: List<CalendarEvent>) =
+        dao.insertAll(events)
+
     suspend fun toggleCompleted(id: Long, isCompleted: Boolean) =
         dao.updateCompletedStatus(id, isCompleted)
 

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,6 +59,7 @@ fun CalendarHeader(
     onViewModeSelected: (CalendarViewMode) -> Unit,
     onToggleSearch: (Boolean) -> Unit,
     onSearchQueryChange: (String) -> Unit,
+    onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val monthName = SimpleDate.getMonthName(uiState.displayedMonth)
@@ -136,6 +138,17 @@ fun CalendarHeader(
                     iconTint = if (uiState.isSearchActive) Color.White else ClayColors.TextPrimary,
                     size = 42.dp,
                     shape = RoundedCornerShape(14.dp)
+                )
+
+                ClayIconButton(
+                    onClick = onOpenSettings,
+                    icon = Icons.Default.Settings,
+                    contentDescription = "Settings",
+                    containerColor = ClayColors.SurfaceMarshmallow,
+                    iconTint = ClayColors.TextPrimary,
+                    size = 42.dp,
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.testTag("settings_button")
                 )
 
                 val isCurrentMonthToday = uiState.selectedDate.isToday() &&
