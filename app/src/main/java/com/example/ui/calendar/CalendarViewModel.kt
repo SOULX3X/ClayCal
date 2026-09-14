@@ -112,7 +112,10 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
 
         // Collect all events from database
         viewModelScope.launch {
-            repository.ensureSampleData()
+            if (!themePreferences.defaultEventsCleaned) {
+                repository.removeDefaultSampleEvents()
+                themePreferences.defaultEventsCleaned = true
+            }
             repository.allEvents.collect { events ->
                 _uiState.update { it.copy(allEvents = events) }
             }

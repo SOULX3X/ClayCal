@@ -1,9 +1,5 @@
 package com.example.ui.calendar
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,14 +9,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
@@ -30,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -58,6 +57,7 @@ fun MonthView(
     onEditEvent: (CalendarEvent) -> Unit,
     onDeleteEvent: (Long) -> Unit,
     onAddNewEvent: (SimpleDate) -> Unit,
+    isWideScreen: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val year = uiState.displayedYear
@@ -72,7 +72,7 @@ fun MonthView(
     val prevMonth = if (month == 1) 12 else month - 1
     val prevYear = if (month == 1) year - 1 else year
     val daysInPrevMonth = SimpleDate.getDaysInMonth(prevYear, prevMonth)
-    val prevMonthDaysCount = firstDayOfWeek - 1 // If Sunday (1), 0 items. If Monday (2), 1 item.
+    val prevMonthDaysCount = firstDayOfWeek - 1
 
     for (i in (daysInPrevMonth - prevMonthDaysCount + 1)..daysInPrevMonth) {
         calendarDays.add(MonthDayItem(SimpleDate(prevYear, prevMonth, i), isCurrentMonth = false))
@@ -83,7 +83,7 @@ fun MonthView(
         calendarDays.add(MonthDayItem(SimpleDate(year, month, i), isCurrentMonth = true))
     }
 
-    // Next month padding to fill complete weeks (multiples of 7, up to 35 or 42)
+    // Next month padding to fill complete weeks
     val remainingDays = (7 - (calendarDays.size % 7)) % 7
     val nextMonth = if (month == 12) 1 else month + 1
     val nextYear = if (month == 12) year + 1 else year
@@ -92,182 +92,305 @@ fun MonthView(
         calendarDays.add(MonthDayItem(SimpleDate(nextYear, nextMonth, i), isCurrentMonth = false))
     }
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        // Month Calendar Clay Container
-        item {
-            ClayCard(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(26.dp),
-                surfaceColor = ClayColors.SurfaceMarshmallow,
-                elevation = 7.dp
+    val selectedEvents = uiState.eventsForSelectedDate
+
+    if (isWideScreen) {
+        // Landscape & Tablet Two-Pane Split View
+        Row(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Left Pane: Month Calendar Grid Card
+            Box(
+                modifier = Modifier
+                    .weight(1.15f)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState()),
+                contentAlignment = Alignment.TopCenter
             ) {
-                Column(
+                MonthCalendarGridCard(
+                    calendarDays = calendarDays,
+                    uiState = uiState,
+                    onDateSelected = onDateSelected
+                )
+            }
+
+            // Right Pane: Selected Date Events & Agenda
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            ) {
+                // Selected Date Header Row
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Weekday headers
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        val weekdays = listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
-                        weekdays.forEachIndexed { index, day ->
-                            Box(
-                                modifier = Modifier.weight(1f),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = day,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (index == 0 || index == 6) ClayColors.ClayCoral else ClayColors.TextTertiary
-                                )
-                            }
-                        }
-                    }
-
-                    // Month grid rows
-                    val totalRows = (calendarDays.size + 6) / 7
-                    for (rowIndex in 0 until totalRows) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            for (colIndex in 0 until 7) {
-                                val dayIndex = rowIndex * 7 + colIndex
-                                if (dayIndex < calendarDays.size) {
-                                    val item = calendarDays[dayIndex]
-                                    val events = uiState.getEventsForDate(item.date)
-                                    val isSelected = item.date.isSameDay(uiState.selectedDate)
-                                    val isToday = item.date.isToday()
-
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(3.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        ClayDayCell(
-                                            day = item.date.day,
-                                            isCurrentMonth = item.isCurrentMonth,
-                                            isSelected = isSelected,
-                                            isToday = isToday,
-                                            events = events,
-                                            onClick = { onDateSelected(item.date) }
-                                        )
-                                    }
-                                } else {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Selected Date Header Row
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = uiState.selectedDate.formatted(),
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ClayColors.TextPrimary
-                    )
-                    val count = uiState.eventsForSelectedDate.size
-                    Text(
-                        text = if (count == 0) "No events planned" else "$count events scheduled",
-                        fontSize = 13.sp,
-                        color = ClayColors.TextSecondary
-                    )
-                }
-
-                ClayButton(
-                    onClick = { onAddNewEvent(uiState.selectedDate) },
-                    containerColor = ClayColors.ClayTerracotta,
-                    contentColor = Color.White,
-                    shape = RoundedCornerShape(14.dp),
-                    elevation = 4.dp,
-                    modifier = Modifier.height(38.dp).testTag("quick_add_button")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add",
-                        tint = Color.White,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        text = "Add",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-
-        // Selected Day Events List
-        val selectedEvents = uiState.eventsForSelectedDate
-        if (selectedEvents.isEmpty()) {
-            item {
-                ClayCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp),
-                    shape = RoundedCornerShape(22.dp),
-                    surfaceColor = ClayColors.SurfaceSoftClay,
-                    elevation = 3.dp
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(28.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Text(text = "🌱", fontSize = 36.sp)
+                    Column {
                         Text(
-                            text = "Free & Open Schedule",
+                            text = uiState.selectedDate.formatted(),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = ClayColors.TextPrimary
                         )
+                        val count = selectedEvents.size
                         Text(
-                            text = "No events mold-formed for this day yet. Tap '+ Add' to shape a new schedule!",
+                            text = if (count == 0) "No events planned" else "$count events scheduled",
+                            fontSize = 12.sp,
+                            color = ClayColors.TextSecondary
+                        )
+                    }
+
+                    ClayButton(
+                        onClick = { onAddNewEvent(uiState.selectedDate) },
+                        containerColor = ClayColors.ClayTerracotta,
+                        contentColor = Color.White,
+                        shape = RoundedCornerShape(14.dp),
+                        elevation = 4.dp,
+                        modifier = Modifier.height(36.dp).testTag("quick_add_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "Add",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                // Events List
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    if (selectedEvents.isEmpty()) {
+                        item {
+                            EmptyEventsCard()
+                        }
+                    } else {
+                        items(selectedEvents, key = { it.id }) { event ->
+                            EventItemCard(
+                                event = event,
+                                onToggleCompleted = { onToggleCompleted(event.id, it) },
+                                onClick = { onEventClicked(event) },
+                                onEdit = { onEditEvent(event) },
+                                onDelete = { onDeleteEvent(event.id) }
+                            )
+                        }
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(72.dp))
+                    }
+                }
+            }
+        }
+    } else {
+        // Standard Portrait Single-Column View
+        LazyColumn(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            // Month Calendar Clay Container
+            item {
+                MonthCalendarGridCard(
+                    calendarDays = calendarDays,
+                    uiState = uiState,
+                    onDateSelected = onDateSelected
+                )
+            }
+
+            // Selected Date Header Row
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = uiState.selectedDate.formatted(),
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ClayColors.TextPrimary
+                        )
+                        val count = selectedEvents.size
+                        Text(
+                            text = if (count == 0) "No events planned" else "$count events scheduled",
                             fontSize = 13.sp,
-                            color = ClayColors.TextSecondary,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            color = ClayColors.TextSecondary
+                        )
+                    }
+
+                    ClayButton(
+                        onClick = { onAddNewEvent(uiState.selectedDate) },
+                        containerColor = ClayColors.ClayTerracotta,
+                        contentColor = Color.White,
+                        shape = RoundedCornerShape(14.dp),
+                        elevation = 4.dp,
+                        modifier = Modifier.height(38.dp).testTag("quick_add_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "Add",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
             }
-        } else {
-            items(selectedEvents, key = { it.id }) { event ->
-                EventItemCard(
-                    event = event,
-                    onToggleCompleted = { onToggleCompleted(event.id, it) },
-                    onClick = { onEventClicked(event) },
-                    onEdit = { onEditEvent(event) },
-                    onDelete = { onDeleteEvent(event.id) }
-                )
+
+            // Selected Day Events List
+            if (selectedEvents.isEmpty()) {
+                item {
+                    EmptyEventsCard()
+                }
+            } else {
+                items(selectedEvents, key = { it.id }) { event ->
+                    EventItemCard(
+                        event = event,
+                        onToggleCompleted = { onToggleCompleted(event.id, it) },
+                        onClick = { onEventClicked(event) },
+                        onEdit = { onEditEvent(event) },
+                        onDelete = { onDeleteEvent(event.id) }
+                    )
+                }
+            }
+
+            // Bottom spacing for FAB
+            item {
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
+    }
+}
 
-        // Bottom spacing for FAB
-        item {
-            Spacer(modifier = Modifier.height(80.dp))
+@Composable
+private fun MonthCalendarGridCard(
+    calendarDays: List<MonthDayItem>,
+    uiState: CalendarUiState,
+    onDateSelected: (SimpleDate) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ClayCard(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(26.dp),
+        surfaceColor = ClayColors.SurfaceMarshmallow,
+        elevation = 7.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Weekday headers
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                val weekdays = listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
+                weekdays.forEachIndexed { index, day ->
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = day,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (index == 0 || index == 6) ClayColors.ClayCoral else ClayColors.TextTertiary
+                        )
+                    }
+                }
+            }
+
+            // Month grid rows
+            val totalRows = (calendarDays.size + 6) / 7
+            for (rowIndex in 0 until totalRows) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    for (colIndex in 0 until 7) {
+                        val dayIndex = rowIndex * 7 + colIndex
+                        if (dayIndex < calendarDays.size) {
+                            val item = calendarDays[dayIndex]
+                            val events = uiState.getEventsForDate(item.date)
+                            val isSelected = item.date.isSameDay(uiState.selectedDate)
+                            val isToday = item.date.isToday()
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(2.5.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                ClayDayCell(
+                                    day = item.date.day,
+                                    isCurrentMonth = item.isCurrentMonth,
+                                    isSelected = isSelected,
+                                    isToday = isToday,
+                                    events = events,
+                                    onClick = { onDateSelected(item.date) }
+                                )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyEventsCard(modifier: Modifier = Modifier) {
+    ClayCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp),
+        shape = RoundedCornerShape(22.dp),
+        surfaceColor = ClayColors.SurfaceSoftClay,
+        elevation = 3.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(text = "🌱", fontSize = 32.sp)
+            Text(
+                text = "Free & Open Schedule",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = ClayColors.TextPrimary
+            )
+            Text(
+                text = "No events mold-formed for this day yet. Tap '+ Add' to shape a new schedule!",
+                fontSize = 12.sp,
+                color = ClayColors.TextSecondary,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
         }
     }
 }
@@ -300,7 +423,7 @@ fun ClayDayCell(
 
     Box(
         modifier = modifier
-            .aspectRatio(0.9f)
+            .aspectRatio(0.92f)
             .shadow(
                 elevation = if (isSelected) 5.dp else if (isCurrentMonth) 2.dp else 0.dp,
                 shape = shape,

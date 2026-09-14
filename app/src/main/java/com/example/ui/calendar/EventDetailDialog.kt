@@ -5,11 +5,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -54,8 +56,10 @@ fun EventDetailDialog(
     Dialog(onDismissRequest = onDismiss) {
         ClayCard(
             modifier = Modifier
-                .fillMaxWidth(0.95f)
-                .padding(vertical = 20.dp),
+                .fillMaxWidth(0.92f)
+                .widthIn(max = 500.dp)
+                .fillMaxHeight(0.92f)
+                .padding(vertical = 12.dp),
             shape = RoundedCornerShape(28.dp),
             surfaceColor = ClayColors.SurfaceMarshmallow,
             elevation = 10.dp

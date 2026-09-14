@@ -26,8 +26,13 @@ class ThemePreferences(context: Context) {
         get() = prefs.getString(KEY_ACCENT, "Terracotta") ?: "Terracotta"
         set(value) = prefs.edit().putString(KEY_ACCENT, value).apply()
 
+    var defaultEventsCleaned: Boolean
+        get() = prefs.getBoolean(KEY_DEFAULT_EVENTS_CLEANED, false)
+        set(value) = prefs.edit().putBoolean(KEY_DEFAULT_EVENTS_CLEANED, value).apply()
+
     companion object {
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_ACCENT = "accent_palette"
+        private const val KEY_DEFAULT_EVENTS_CLEANED = "default_events_cleaned"
     }
 }
