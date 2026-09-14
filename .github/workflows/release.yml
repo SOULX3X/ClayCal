@@ -181,13 +181,24 @@ jobs:
             touch .env.example
           fi
 
-          # Check if secret signing key is provided, otherwise generate a secure release key
+          # Check if secret signing key is provided, or persistent keystore exists in repo
           if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
             echo "Using repository signing keystore secret..."
             echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "$GITHUB_WORKSPACE/my-upload-key.jks"
             echo "KEYSTORE_PATH=$GITHUB_WORKSPACE/my-upload-key.jks" >> $GITHUB_ENV
             echo "STORE_PASSWORD=${{ secrets.STORE_PASSWORD }}" >> $GITHUB_ENV
             echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
+          elif [ -f "$GITHUB_WORKSPACE/release.keystore.base64" ]; then
+            echo "Using committed persistent release.keystore.base64..."
+            base64 --decode "$GITHUB_WORKSPACE/release.keystore.base64" > "$GITHUB_WORKSPACE/my-upload-key.jks"
+            echo "KEYSTORE_PATH=$GITHUB_WORKSPACE/my-upload-key.jks" >> $GITHUB_ENV
+            echo "STORE_PASSWORD=android" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=android" >> $GITHUB_ENV
+          elif [ -f "$GITHUB_WORKSPACE/my-upload-key.jks" ]; then
+            echo "Using committed release keystore my-upload-key.jks..."
+            echo "KEYSTORE_PATH=$GITHUB_WORKSPACE/my-upload-key.jks" >> $GITHUB_ENV
+            echo "STORE_PASSWORD=android" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=android" >> $GITHUB_ENV
           else
             echo "No custom keystore secret detected. Generating standalone release keystore..."
             keytool -genkeypair -v \
