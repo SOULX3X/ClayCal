@@ -13,13 +13,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
@@ -27,7 +26,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -49,7 +47,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.data.AppThemeMode
 import com.example.model.SimpleDate
-import com.example.model.SimpleTime
 import com.example.ui.calendar.CalendarHeader
 import com.example.ui.calendar.CalendarStatsBanner
 import com.example.ui.calendar.CalendarViewMode
@@ -57,11 +54,17 @@ import com.example.ui.calendar.CalendarViewModel
 import com.example.ui.calendar.DayView
 import com.example.ui.calendar.EventDetailDialog
 import com.example.ui.calendar.EventDialog
+import com.example.ui.calendar.InsightsScreen
 import com.example.ui.calendar.MonthView
+import com.example.ui.calendar.OnboardingFlow
 import com.example.ui.calendar.ScheduleView
+import com.example.ui.calendar.SearchScreen
 import com.example.ui.calendar.SettingsDialog
+import com.example.ui.calendar.SettingsScreen
 import com.example.ui.calendar.WeekView
+import com.example.ui.clay.ClayBottomNavBar
 import com.example.ui.clay.ClayColors
+import com.example.ui.clay.MainNavTab
 import com.example.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
@@ -99,6 +102,16 @@ fun CalendarApp(
         }
     }
 
+    if (uiState.isOnboardingVisible) {
+        OnboardingFlow(
+            onFinish = { viewModel.closeOnboarding() },
+            onRestoreBackup = {
+                viewModel.showSnackbar("Backup restoration ready")
+            }
+        )
+        return
+    }
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -106,12 +119,20 @@ fun CalendarApp(
         containerColor = ClayColors.Background,
         contentWindowInsets = WindowInsets.safeDrawing,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        floatingActionButton = {
-            ClayFloatingActionButton(
-                onClick = { viewModel.openCreateDialog() },
-                containerColor = ClayColors.PrimaryAccent,
-                modifier = Modifier.testTag("fab_add_event")
+        bottomBar = {
+            ClayBottomNavBar(
+                selectedTab = uiState.mainTab,
+                onTabSelected = { viewModel.setMainTab(it) }
             )
+        },
+        floatingActionButton = {
+            if (uiState.mainTab == MainNavTab.CALENDAR) {
+                ClayFloatingActionButton(
+                    onClick = { viewModel.openCreateDialog() },
+                    containerColor = ClayColors.ClaySage,
+                    modifier = Modifier.testTag("fab_add_event")
+                )
+            }
         }
     ) { innerPadding ->
         BoxWithConstraints(
@@ -121,89 +142,117 @@ fun CalendarApp(
         ) {
             val isWideScreen = maxWidth >= 600.dp
 
-            Column(
+            AnimatedContent(
+                targetState = uiState.mainTab,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "main_tab_transition",
                 modifier = Modifier.fillMaxSize()
-            ) {
-                // Clay Calendar Top Bar & Navigation
-                CalendarHeader(
-                    uiState = uiState,
-                    onPreviousMonth = { viewModel.previousMonth() },
-                    onNextMonth = { viewModel.nextMonth() },
-                    onJumpToToday = { viewModel.jumpToToday() },
-                    onViewModeSelected = { viewModel.setViewMode(it) },
-                    onToggleSearch = { viewModel.toggleSearch(it) },
-                    onSearchQueryChange = { viewModel.setSearchQuery(it) },
-                    onOpenSettings = { viewModel.openSettings() },
-                    isWideScreen = isWideScreen
-                )
-
-                // Optional Quick Stats Banner (shown when search is inactive and in Month view in portrait)
-                if (!isWideScreen && !uiState.isSearchActive && uiState.viewMode == CalendarViewMode.MONTH) {
-                    CalendarStatsBanner(
-                        uiState = uiState,
-                        modifier = Modifier.padding(bottom = 10.dp)
-                    )
-                }
-
-                // Animated View Mode Switcher
-                AnimatedContent(
-                    targetState = uiState.viewMode,
-                    transitionSpec = { fadeIn() togetherWith fadeOut() },
-                    label = "view_mode_transition",
-                    modifier = Modifier.weight(1f)
-                ) { mode ->
-                    when (mode) {
-                        CalendarViewMode.MONTH -> {
-                            MonthView(
+            ) { tab ->
+                when (tab) {
+                    MainNavTab.CALENDAR -> {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            CalendarHeader(
                                 uiState = uiState,
-                                onDateSelected = { viewModel.selectDate(it) },
-                                onToggleCompleted = { id, done -> viewModel.toggleCompleted(id, done) },
-                                onEventClicked = { viewModel.openDetailDialog(it) },
-                                onEditEvent = { viewModel.openEditDialog(it) },
-                                onDeleteEvent = { viewModel.deleteEvent(it) },
-                                onAddNewEvent = { viewModel.openCreateDialog(it) },
+                                onPreviousMonth = { viewModel.previousMonth() },
+                                onNextMonth = { viewModel.nextMonth() },
+                                onJumpToToday = { viewModel.jumpToToday() },
+                                onViewModeSelected = { viewModel.setViewMode(it) },
+                                onAddNewEvent = { viewModel.openCreateDialog() },
                                 isWideScreen = isWideScreen
                             )
-                        }
 
-                        CalendarViewMode.WEEK -> {
-                            WeekView(
-                                uiState = uiState,
-                                onDateSelected = { viewModel.selectDate(it) },
-                                onToggleCompleted = { id, done -> viewModel.toggleCompleted(id, done) },
-                                onEventClicked = { viewModel.openDetailDialog(it) },
-                                onEditEvent = { viewModel.openEditDialog(it) },
-                                onDeleteEvent = { viewModel.deleteEvent(it) },
-                                onAddNewEvent = { viewModel.openCreateDialog(it) },
-                                isWideScreen = isWideScreen
-                            )
-                        }
+                            AnimatedContent(
+                                targetState = uiState.viewMode,
+                                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                                label = "view_mode_transition",
+                                modifier = Modifier.weight(1f)
+                            ) { mode ->
+                                when (mode) {
+                                    CalendarViewMode.MONTH -> {
+                                        MonthView(
+                                            uiState = uiState,
+                                            onDateSelected = { viewModel.selectDate(it) },
+                                            onToggleCompleted = { id, done -> viewModel.toggleCompleted(id, done) },
+                                            onEventClicked = { viewModel.openDetailDialog(it) },
+                                            onEditEvent = { viewModel.openEditDialog(it) },
+                                            onDeleteEvent = { viewModel.deleteEvent(it) },
+                                            onAddNewEvent = { viewModel.openCreateDialog(it) },
+                                            isWideScreen = isWideScreen
+                                        )
+                                    }
 
-                        CalendarViewMode.DAY -> {
-                            DayView(
-                                uiState = uiState,
-                                onToggleCompleted = { id, done -> viewModel.toggleCompleted(id, done) },
-                                onEventClicked = { viewModel.openDetailDialog(it) },
-                                onEditEvent = { viewModel.openEditDialog(it) },
-                                onDeleteEvent = { viewModel.deleteEvent(it) },
-                                onAddNewEventAtHour = { date, hour ->
-                                    viewModel.openCreateDialog(date)
-                                },
-                                isWideScreen = isWideScreen
-                            )
-                        }
+                                    CalendarViewMode.WEEK -> {
+                                        WeekView(
+                                            uiState = uiState,
+                                            onDateSelected = { viewModel.selectDate(it) },
+                                            onToggleCompleted = { id, done -> viewModel.toggleCompleted(id, done) },
+                                            onEventClicked = { viewModel.openDetailDialog(it) },
+                                            onEditEvent = { viewModel.openEditDialog(it) },
+                                            onDeleteEvent = { viewModel.deleteEvent(it) },
+                                            onAddNewEvent = { viewModel.openCreateDialog(it) },
+                                            isWideScreen = isWideScreen
+                                        )
+                                    }
 
-                        CalendarViewMode.SCHEDULE -> {
-                            ScheduleView(
-                                uiState = uiState,
-                                onCategorySelected = { viewModel.setSelectedCategory(it) },
-                                onToggleCompleted = { id, done -> viewModel.toggleCompleted(id, done) },
-                                onEventClicked = { viewModel.openDetailDialog(it) },
-                                onEditEvent = { viewModel.openEditDialog(it) },
-                                onDeleteEvent = { viewModel.deleteEvent(it) },
-                                isWideScreen = isWideScreen
-                            )
+                                    CalendarViewMode.DAY -> {
+                                        DayView(
+                                            uiState = uiState,
+                                            onToggleCompleted = { id, done -> viewModel.toggleCompleted(id, done) },
+                                            onEventClicked = { viewModel.openDetailDialog(it) },
+                                            onEditEvent = { viewModel.openEditDialog(it) },
+                                            onDeleteEvent = { viewModel.deleteEvent(it) },
+                                            onAddNewEventAtHour = { date, hour ->
+                                                viewModel.openCreateDialog(date)
+                                            },
+                                            isWideScreen = isWideScreen
+                                        )
+                                    }
+
+                                    CalendarViewMode.SCHEDULE -> {
+                                        ScheduleView(
+                                            uiState = uiState,
+                                            onCategorySelected = { viewModel.setSelectedCategory(it) },
+                                            onToggleCompleted = { id, done -> viewModel.toggleCompleted(id, done) },
+                                            onEventClicked = { viewModel.openDetailDialog(it) },
+                                            onEditEvent = { viewModel.openEditDialog(it) },
+                                            onDeleteEvent = { viewModel.deleteEvent(it) },
+                                            isWideScreen = isWideScreen
+                                        )
+                                    }
+                                }
+                            }
                         }
+                    }
+
+                    MainNavTab.SEARCH -> {
+                        SearchScreen(
+                            uiState = uiState,
+                            onQueryChange = { viewModel.setSearchQuery(it) },
+                            onSelectCategory = { viewModel.setSelectedCategory(it) },
+                            onEventClick = { viewModel.openDetailDialog(it) },
+                            onToggleCompleted = { id, done -> viewModel.toggleCompleted(id, done) }
+                        )
+                    }
+
+                    MainNavTab.INSIGHTS -> {
+                        InsightsScreen(
+                            uiState = uiState,
+                            onAddEventClick = { viewModel.openCreateDialog() }
+                        )
+                    }
+
+                    MainNavTab.SETTINGS -> {
+                        SettingsScreen(
+                            currentThemeMode = uiState.themeMode,
+                            activeAccent = uiState.activeAccent,
+                            eventsCount = uiState.allEvents.size,
+                            onThemeModeChange = { viewModel.setThemeMode(it) },
+                            onAccentColorChange = { viewModel.setAccentPalette(it) },
+                            onExportData = { viewModel.exportEventsJson() },
+                            onImportData = { viewModel.showSnackbar("File picker ready for backup restore") },
+                            onClearAllData = { viewModel.deleteAllData() },
+                            onOpenOnboarding = { viewModel.showOnboarding() }
+                        )
                     }
                 }
             }
@@ -242,7 +291,7 @@ fun CalendarApp(
             )
         }
 
-        // Settings Dialog
+        // Settings Dialog (if opened directly)
         if (uiState.isSettingsOpen) {
             SettingsDialog(
                 currentThemeMode = uiState.themeMode,
@@ -263,7 +312,7 @@ fun CalendarApp(
 fun ClayFloatingActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    containerColor: Color = ClayColors.PrimaryAccent
+    containerColor: Color = ClayColors.ClaySage
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -272,25 +321,25 @@ fun ClayFloatingActionButton(
 
     Box(
         modifier = modifier
-            .size(62.dp)
+            .size(58.dp)
             .graphicsLayer {
                 val scale = if (isPressed) 0.92f else 1f
                 scaleX = scale
                 scaleY = scale
             }
             .shadow(
-                elevation = if (isPressed) 3.dp else 10.dp,
+                elevation = if (isPressed) 2.dp else 6.dp,
                 shape = shape,
-                ambientColor = containerColor.copy(alpha = 0.4f),
-                spotColor = containerColor.copy(alpha = 0.45f)
+                ambientColor = containerColor.copy(alpha = 0.35f),
+                spotColor = containerColor.copy(alpha = 0.4f)
             )
             .background(containerColor, shape = shape)
             .border(
-                width = 2.dp,
+                width = 1.5.dp,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color.White.copy(alpha = 0.75f),
-                        Color.Black.copy(alpha = 0.2f)
+                        Color.White.copy(alpha = 0.7f),
+                        Color.Transparent
                     ),
                     start = Offset.Zero,
                     end = Offset.Infinite
@@ -307,9 +356,9 @@ fun ClayFloatingActionButton(
     ) {
         Icon(
             imageVector = Icons.Default.Add,
-            contentDescription = "Mold new event",
+            contentDescription = "Add new event",
             tint = Color.White,
-            modifier = Modifier.size(30.dp)
+            modifier = Modifier.size(28.dp)
         )
     }
 }

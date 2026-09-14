@@ -23,27 +23,27 @@ fun MyApplicationTheme(
     val darkColorScheme = darkColorScheme(
         primary = primaryAccent,
         secondary = ClayColors.ClayLavender,
-        tertiary = ClayColors.ClayMint,
-        background = Color(0xFF16131C),
-        surface = Color(0xFF25202E),
+        tertiary = ClayColors.ClaySage,
+        background = Color(0xFF1C1A18),
+        surface = Color(0xFF282522),
         onPrimary = Color.White,
         onSecondary = Color.White,
         onTertiary = Color.White,
-        onBackground = Color(0xFFF3EDF8),
-        onSurface = Color(0xFFF3EDF8)
+        onBackground = Color(0xFFF6F3EE),
+        onSurface = Color(0xFFF6F3EE)
     )
 
     val lightColorScheme = lightColorScheme(
         primary = primaryAccent,
         secondary = ClayColors.ClayLavender,
-        tertiary = ClayColors.ClayMint,
-        background = Color(0xFFF7F4EF),
-        surface = Color(0xFFFFFFFF),
+        tertiary = ClayColors.ClaySage,
+        background = Color(0xFFEFEAE2),
+        surface = Color(0xFFFAF7F2),
         onPrimary = Color.White,
         onSecondary = Color.White,
         onTertiary = Color.White,
-        onBackground = Color(0xFF2D2522),
-        onSurface = Color(0xFF2D2522)
+        onBackground = Color(0xFF2E2724),
+        onSurface = Color(0xFF2E2724)
     )
 
     val colorScheme = if (darkTheme) darkColorScheme else lightColorScheme

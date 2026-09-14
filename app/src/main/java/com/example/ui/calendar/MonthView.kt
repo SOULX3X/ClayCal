@@ -292,34 +292,36 @@ private fun MonthCalendarGridCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(26.dp),
         surfaceColor = ClayColors.SurfaceMarshmallow,
-        elevation = 7.dp
+        elevation = 5.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
+                .padding(horizontal = 14.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Weekday headers
+            // Weekday headers: S M T W T F S (Screen 7)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                val weekdays = listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
-                weekdays.forEachIndexed { index, day ->
+                val weekdays = listOf("S", "M", "T", "W", "T", "F", "S")
+                weekdays.forEach { day ->
                     Box(
                         modifier = Modifier.weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = day,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (index == 0 || index == 6) ClayColors.ClayCoral else ClayColors.TextTertiary
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = ClayColors.TextSecondary
                         )
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Month grid rows
             val totalRows = (calendarDays.size + 6) / 7
@@ -339,7 +341,7 @@ private fun MonthCalendarGridCard(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(2.5.dp),
+                                    .padding(vertical = 2.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 ClayDayCell(
@@ -366,10 +368,10 @@ private fun EmptyEventsCard(modifier: Modifier = Modifier) {
     ClayCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp),
+            .padding(vertical = 8.dp),
         shape = RoundedCornerShape(22.dp),
-        surfaceColor = ClayColors.SurfaceSoftClay,
-        elevation = 3.dp
+        surfaceColor = ClayColors.SurfaceMarshmallow,
+        elevation = 2.dp
     ) {
         Column(
             modifier = Modifier
@@ -378,16 +380,16 @@ private fun EmptyEventsCard(modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(text = "🌱", fontSize = 32.sp)
+            Text(text = "🌿", fontSize = 32.sp)
             Text(
-                text = "Free & Open Schedule",
+                text = "No events scheduled",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color = ClayColors.TextPrimary
             )
             Text(
-                text = "No events mold-formed for this day yet. Tap '+ Add' to shape a new schedule!",
-                fontSize = 12.sp,
+                text = "Your day is clear and relaxed. Tap '+' to create a new event.",
+                fontSize = 13.sp,
                 color = ClayColors.TextSecondary,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
@@ -405,84 +407,71 @@ fun ClayDayCell(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(14.dp)
-
-    val surfaceColor = when {
-        isSelected -> ClayColors.ClayTerracotta
-        isToday -> ClayColors.ClayPeach.copy(alpha = 0.18f)
-        isCurrentMonth -> ClayColors.SurfaceSoftClay
-        else -> ClayColors.SurfaceDimmed.copy(alpha = 0.5f)
-    }
+    val cellShape = CircleShape
 
     val textColor = when {
         isSelected -> Color.White
-        isToday -> ClayColors.ClayCoral
+        isToday -> ClayColors.ClaySage
         isCurrentMonth -> ClayColors.TextPrimary
-        else -> ClayColors.TextTertiary.copy(alpha = 0.5f)
+        else -> ClayColors.TextTertiary.copy(alpha = 0.45f)
     }
 
-    Box(
+    Column(
         modifier = modifier
-            .aspectRatio(0.92f)
-            .shadow(
-                elevation = if (isSelected) 5.dp else if (isCurrentMonth) 2.dp else 0.dp,
-                shape = shape,
-                ambientColor = if (isSelected) ClayColors.ClayTerracotta.copy(alpha = 0.35f) else ClayColors.ShadowAmbient,
-                spotColor = if (isSelected) ClayColors.ClayTerracotta.copy(alpha = 0.4f) else ClayColors.ShadowSpot
-            )
-            .background(surfaceColor, shape = shape)
-            .border(
-                width = if (isToday && !isSelected) 2.dp else 1.dp,
-                brush = when {
-                    isSelected -> Brush.linearGradient(
-                        colors = listOf(Color.White.copy(alpha = 0.7f), Color.Black.copy(alpha = 0.15f))
-                    )
-                    isToday -> Brush.linearGradient(
-                        colors = listOf(ClayColors.ClayCoral, ClayColors.ClayTerracotta)
-                    )
-                    else -> Brush.linearGradient(
-                        colors = listOf(Color.White.copy(alpha = 0.85f), ClayColors.ShadowBevel.copy(alpha = 0.3f))
-                    )
-                },
-                shape = shape
-            )
-            .clip(shape)
+            .size(40.dp)
+            .clip(cellShape)
             .clickable(onClick = onClick)
             .testTag("day_cell_$day"),
-        contentAlignment = Alignment.Center
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .then(
+                    if (isSelected) {
+                        Modifier
+                            .shadow(3.dp, CircleShape, ambientColor = ClayColors.ClaySage.copy(alpha = 0.35f), spotColor = ClayColors.ClaySage.copy(alpha = 0.4f))
+                            .background(ClayColors.ClaySage, CircleShape)
+                    } else if (isToday) {
+                        Modifier
+                            .border(1.5.dp, ClayColors.ClaySage, CircleShape)
+                    } else {
+                        Modifier
+                    }
+                ),
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "$day",
-                fontSize = 13.sp,
-                fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Medium,
+                fontSize = 14.sp,
+                fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal,
                 color = textColor
             )
+        }
 
-            // Event dots (max 3)
-            if (events.isNotEmpty() && isCurrentMonth) {
-                Spacer(modifier = Modifier.height(2.dp))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(2.5.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val displayEvents = events.take(3)
-                    displayEvents.forEach { event ->
-                        val cat = Category.fromName(event.category)
-                        Box(
-                            modifier = Modifier
-                                .size(4.5.dp)
-                                .background(
-                                    color = if (isSelected) Color.White else cat.clayColor,
-                                    shape = CircleShape
-                                )
-                        )
-                    }
+        // Event dots (max 3)
+        if (events.isNotEmpty() && isCurrentMonth) {
+            Spacer(modifier = Modifier.height(2.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val displayEvents = events.take(3)
+                displayEvents.forEach { event ->
+                    val cat = Category.fromName(event.category)
+                    Box(
+                        modifier = Modifier
+                            .size(4.dp)
+                            .background(
+                                color = if (isSelected) ClayColors.ClaySage else cat.clayColor,
+                                shape = CircleShape
+                            )
+                    )
                 }
             }
+        } else {
+            Spacer(modifier = Modifier.height(6.dp))
         }
     }
 }

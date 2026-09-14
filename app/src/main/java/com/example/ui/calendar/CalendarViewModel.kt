@@ -15,6 +15,7 @@ import com.example.model.Category
 import com.example.model.SimpleDate
 import com.example.model.SimpleTime
 import com.example.ui.clay.ClayColors
+import com.example.ui.clay.MainNavTab
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,13 +30,15 @@ data class CalendarUiState(
     val displayedYear: Int = SimpleDate.today().year,
     val displayedMonth: Int = SimpleDate.today().month,
     val viewMode: CalendarViewMode = CalendarViewMode.MONTH,
+    val mainTab: MainNavTab = MainNavTab.CALENDAR,
+    val isOnboardingVisible: Boolean = false,
     val searchQuery: String = "",
     val isSearchActive: Boolean = false,
     val selectedCategory: String? = null,
     val isCreateDialogOpen: Boolean = false,
     val isSettingsOpen: Boolean = false,
     val themeMode: AppThemeMode = AppThemeMode.SYSTEM,
-    val activeAccent: String = "Terracotta",
+    val activeAccent: String = "Sage",
     val snackbarMessage: String? = null,
     val editingEvent: CalendarEvent? = null,
     val detailEvent: CalendarEvent? = null,
@@ -184,6 +187,18 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
 
     fun setSelectedCategory(category: String?) {
         _uiState.update { it.copy(selectedCategory = category) }
+    }
+
+    fun setMainTab(tab: MainNavTab) {
+        _uiState.update { it.copy(mainTab = tab) }
+    }
+
+    fun showOnboarding() {
+        _uiState.update { it.copy(isOnboardingVisible = true) }
+    }
+
+    fun closeOnboarding() {
+        _uiState.update { it.copy(isOnboardingVisible = false) }
     }
 
     fun openCreateDialog(prefillDate: SimpleDate? = null) {
