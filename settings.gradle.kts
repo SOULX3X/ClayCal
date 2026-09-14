@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "Clay Calendar"
+rootProject.name = "Claycal"
 
 include(":app")

@@ -154,7 +154,7 @@ jobs:
 
           # Generate Release Notes Markdown directly without sed
           {
-            echo "## 📱 Clay Calendar - Release v${NEW_VERSION_NAME}"
+            echo "## 📱 Claycal - Release v${NEW_VERSION_NAME}"
             echo ""
             echo "**Build:** Version \`${NEW_VERSION_NAME}\` (Code: \`${NEW_VERSION_CODE}\`)"
             echo "**Commit:** \`${{ github.sha }}\`"
@@ -167,7 +167,7 @@ jobs:
             echo "---"
             echo ""
             echo "### ⬇️ Download & Install"
-            echo "Download **\`ClayCalendar-v${NEW_VERSION_NAME}.apk\`** from the Assets section below and open it on your Android device."
+            echo "Download **\`Claycal-v${NEW_VERSION_NAME}.apk\`** from the Assets section below and open it on your Android device."
           } > release_notes.md
 
           echo "Release notes generated:"
@@ -198,7 +198,7 @@ jobs:
               -validity 10000 \
               -storepass android \
               -keypass android \
-              -dname "CN=ClayCalendar, OU=App, O=AIStudio, L=MountainView, S=CA, C=US"
+              -dname "CN=Claycal, OU=App, O=AIStudio, L=MountainView, S=CA, C=US"
             echo "KEYSTORE_PATH=$GITHUB_WORKSPACE/my-upload-key.jks" >> $GITHUB_ENV
             echo "STORE_PASSWORD=android" >> $GITHUB_ENV
             echo "KEY_PASSWORD=android" >> $GITHUB_ENV
@@ -216,7 +216,7 @@ jobs:
             exit 1
           fi
 
-          TARGET_APK="ClayCalendar-v${NEW_VERSION_NAME}.apk"
+          TARGET_APK="Claycal-v${NEW_VERSION_NAME}.apk"
           cp "$APK_SRC" "$TARGET_APK"
           echo "Target APK created: $TARGET_APK"
 
@@ -250,10 +250,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.RELEASE_TAG }}
-          name: "Clay Calendar v${{ env.NEW_VERSION_NAME }}"
+          name: "Claycal v${{ env.NEW_VERSION_NAME }}"
           body_path: release_notes.md
           files: |
-            ClayCalendar-v${{ env.NEW_VERSION_NAME }}.apk
+            Claycal-v${{ env.NEW_VERSION_NAME }}.apk
           draft: false
           prerelease: false
         env:

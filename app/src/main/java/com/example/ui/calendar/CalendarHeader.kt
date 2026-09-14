@@ -109,7 +109,7 @@ fun CalendarHeader(
 
                 Column {
                     Text(
-                        text = "Clay Calendar",
+                        text = "Claycal",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Black,
                         color = ClayColors.TextPrimary
