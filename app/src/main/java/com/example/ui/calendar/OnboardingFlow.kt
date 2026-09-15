@@ -1,5 +1,6 @@
 package com.example.ui.calendar
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -60,6 +61,14 @@ fun OnboardingFlow(
     modifier: Modifier = Modifier
 ) {
     var step by remember { mutableIntStateOf(0) } // 0..5 (Screens 1..6)
+
+    BackHandler {
+        if (step > 0) {
+            step--
+        } else {
+            onFinish()
+        }
+    }
 
     Box(
         modifier = modifier

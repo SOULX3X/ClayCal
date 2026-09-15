@@ -1,7 +1,10 @@
 package com.example
 
+import android.app.Activity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContent
@@ -32,7 +35,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +46,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -96,6 +102,34 @@ fun CalendarApp(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    var lastBackPressTime by remember { mutableLongStateOf(0L) }
+
+    // 1. If in Search tab and search query is not blank, back clears search
+    BackHandler(enabled = uiState.mainTab == MainNavTab.SEARCH && uiState.searchQuery.isNotEmpty()) {
+        viewModel.setSearchQuery("")
+    }
+
+    // 2. If on any secondary tab (Search, Insights, Settings), back returns to Calendar home tab
+    BackHandler(enabled = uiState.mainTab != MainNavTab.CALENDAR) {
+        viewModel.setMainTab(MainNavTab.CALENDAR)
+    }
+
+    // 3. If on Calendar tab and in non-Month view (Week, Day, Schedule), back returns to Month view
+    BackHandler(enabled = uiState.mainTab == MainNavTab.CALENDAR && uiState.viewMode != CalendarViewMode.MONTH) {
+        viewModel.setViewMode(CalendarViewMode.MONTH)
+    }
+
+    // 4. On root Calendar Month view: require double press within 2 seconds to exit app
+    BackHandler(enabled = uiState.mainTab == MainNavTab.CALENDAR && uiState.viewMode == CalendarViewMode.MONTH && !uiState.isOnboardingVisible) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastBackPressTime < 2000L) {
+            (context as? Activity)?.finish()
+        } else {
+            lastBackPressTime = currentTime
+            Toast.makeText(context, "Press back again to exit", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { msg ->

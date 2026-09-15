@@ -1,5 +1,6 @@
 package com.example.ui.calendar
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -89,6 +90,14 @@ fun SettingsScreen(
     var defaultView by remember { mutableStateOf("Month") }
     var startWeekOn by remember { mutableStateOf("Monday") }
     var showClearConfirm by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = showClearConfirm || activeSubScreen != SettingsSubScreen.MAIN) {
+        if (showClearConfirm) {
+            showClearConfirm = false
+        } else if (activeSubScreen != SettingsSubScreen.MAIN) {
+            activeSubScreen = SettingsSubScreen.MAIN
+        }
+    }
 
     when (activeSubScreen) {
         SettingsSubScreen.MAIN -> {

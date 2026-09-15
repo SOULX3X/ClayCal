@@ -30,9 +30,14 @@ class ThemePreferences(context: Context) {
         get() = prefs.getBoolean(KEY_DEFAULT_EVENTS_CLEANED, false)
         set(value) = prefs.edit().putBoolean(KEY_DEFAULT_EVENTS_CLEANED, value).apply()
 
+    var hasCompletedTour: Boolean
+        get() = prefs.getBoolean(KEY_HAS_COMPLETED_TOUR, false)
+        set(value) = prefs.edit().putBoolean(KEY_HAS_COMPLETED_TOUR, value).apply()
+
     companion object {
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_ACCENT = "accent_palette"
         private const val KEY_DEFAULT_EVENTS_CLEANED = "default_events_cleaned"
+        private const val KEY_HAS_COMPLETED_TOUR = "has_completed_tour"
     }
 }

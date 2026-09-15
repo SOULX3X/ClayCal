@@ -31,6 +31,11 @@ class CalendarSettingsTest {
 
         prefs.accentPalette = "Lavender"
         assertEquals("Lavender", prefs.accentPalette)
+
+        // New install default for tour should be false
+        assertEquals(false, prefs.hasCompletedTour)
+        prefs.hasCompletedTour = true
+        assertEquals(true, prefs.hasCompletedTour)
     }
 
     @Test

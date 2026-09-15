@@ -111,7 +111,14 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         val savedMode = themePreferences.themeMode
         val savedAccent = themePreferences.accentPalette
         ClayColors.activeAccentName = savedAccent
-        _uiState.update { it.copy(themeMode = savedMode, activeAccent = savedAccent) }
+        val shouldShowTour = !themePreferences.hasCompletedTour
+        _uiState.update {
+            it.copy(
+                themeMode = savedMode,
+                activeAccent = savedAccent,
+                isOnboardingVisible = shouldShowTour
+            )
+        }
 
         // Collect all events from database
         viewModelScope.launch {
@@ -198,6 +205,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun closeOnboarding() {
+        themePreferences.hasCompletedTour = true
         _uiState.update { it.copy(isOnboardingVisible = false) }
     }
 
