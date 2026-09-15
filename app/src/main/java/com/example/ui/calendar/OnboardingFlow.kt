@@ -187,7 +187,7 @@ private fun WelcomeScreen(onNext: () -> Unit) {
             Spacer(modifier = Modifier.height(24.dp))
             ClayButton(
                 onClick = onNext,
-                containerColor = ClayColors.ClaySage,
+                containerColor = ClayColors.PrimaryAccent,
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("onboarding_get_started")
@@ -278,7 +278,7 @@ private fun InfoScreen(
             Spacer(modifier = Modifier.height(24.dp))
             ClayButton(
                 onClick = onNext,
-                containerColor = ClayColors.ClaySage,
+                containerColor = ClayColors.PrimaryAccent,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(buttonLabel, fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -350,7 +350,7 @@ private fun InitialSetupScreen(onContinue: () -> Unit) {
         Column(modifier = Modifier.fillMaxWidth()) {
             ClayButton(
                 onClick = onContinue,
-                containerColor = ClayColors.ClaySage,
+                containerColor = ClayColors.PrimaryAccent,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Continue", fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -432,7 +432,7 @@ private fun NoAccountScreen(
         ) {
             ClayButton(
                 onClick = onStart,
-                containerColor = ClayColors.ClaySage,
+                containerColor = ClayColors.PrimaryAccent,
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("onboarding_start_using")
@@ -509,7 +509,7 @@ private fun DotsIndicator(selectedIndex: Int, total: Int) {
                 modifier = Modifier
                     .size(if (i == selectedIndex) 8.dp else 6.dp)
                     .background(
-                        color = if (i == selectedIndex) ClayColors.ClaySage else ClayColors.ShadowBevel,
+                        color = if (i == selectedIndex) ClayColors.PrimaryAccent else ClayColors.ShadowBevel,
                         shape = CircleShape
                     )
             )

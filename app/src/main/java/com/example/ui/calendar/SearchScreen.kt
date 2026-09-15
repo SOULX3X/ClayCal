@@ -147,7 +147,7 @@ fun SearchScreen(
                             fontWeight = FontWeight.Medium,
                             color = ClayColors.TextPrimary
                         ),
-                        cursorBrush = SolidColor(ClayColors.ClaySage),
+                        cursorBrush = SolidColor(ClayColors.PrimaryAccent),
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("search_text_input")

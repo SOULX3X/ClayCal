@@ -80,6 +80,8 @@ class MainActivity : ComponentActivity() {
                 AppThemeMode.DARK -> true
                 AppThemeMode.SYSTEM -> systemDark
             }
+            ClayColors.isDark = isDark
+            ClayColors.activeAccentName = uiState.activeAccent
 
             MyApplicationTheme(darkTheme = isDark) {
                 CalendarApp(viewModel = viewModel)
@@ -129,7 +131,7 @@ fun CalendarApp(
             if (uiState.mainTab == MainNavTab.CALENDAR) {
                 ClayFloatingActionButton(
                     onClick = { viewModel.openCreateDialog() },
-                    containerColor = ClayColors.ClaySage,
+                    containerColor = ClayColors.PrimaryAccent,
                     modifier = Modifier.testTag("fab_add_event")
                 )
             }
@@ -312,7 +314,7 @@ fun CalendarApp(
 fun ClayFloatingActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    containerColor: Color = ClayColors.ClaySage
+    containerColor: Color = ClayColors.PrimaryAccent
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()

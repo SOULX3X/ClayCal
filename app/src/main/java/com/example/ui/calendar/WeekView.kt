@@ -108,8 +108,8 @@ fun WeekView(
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(
-                                        if (isSelected) ClayColors.ClayTerracotta
-                                        else if (isToday) ClayColors.ClayPeach.copy(alpha = 0.2f)
+                                        if (isSelected) ClayColors.PrimaryAccent
+                                        else if (isToday) ClayColors.PrimaryAccent.copy(alpha = 0.15f)
                                         else ClayColors.SurfaceSoftClay
                                     )
                                     .clickable { onDateSelected(date) }
@@ -131,7 +131,7 @@ fun WeekView(
                                         text = "${date.day}",
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Black,
-                                        color = if (isSelected) Color.White else if (isToday) ClayColors.ClayCoral else ClayColors.TextPrimary
+                                        color = if (isSelected) Color.White else if (isToday) ClayColors.PrimaryAccent else ClayColors.TextPrimary
                                     )
                                 }
 
@@ -410,14 +410,14 @@ fun ClayWeekDayPill(
     val shape = RoundedCornerShape(16.dp)
 
     val surfaceColor = when {
-        isSelected -> ClayColors.ClayTerracotta
-        isToday -> ClayColors.ClayPeach.copy(alpha = 0.2f)
+        isSelected -> ClayColors.PrimaryAccent
+        isToday -> ClayColors.PrimaryAccent.copy(alpha = 0.15f)
         else -> ClayColors.SurfaceSoftClay
     }
 
     val textColor = when {
         isSelected -> Color.White
-        isToday -> ClayColors.ClayCoral
+        isToday -> ClayColors.PrimaryAccent
         else -> ClayColors.TextPrimary
     }
 
@@ -427,8 +427,8 @@ fun ClayWeekDayPill(
             .shadow(
                 elevation = if (isSelected) 5.dp else 1.dp,
                 shape = shape,
-                ambientColor = if (isSelected) ClayColors.ClayTerracotta.copy(alpha = 0.35f) else ClayColors.ShadowAmbient,
-                spotColor = if (isSelected) ClayColors.ClayTerracotta.copy(alpha = 0.4f) else ClayColors.ShadowSpot
+                ambientColor = if (isSelected) ClayColors.PrimaryAccent.copy(alpha = 0.35f) else ClayColors.ShadowAmbient,
+                spotColor = if (isSelected) ClayColors.PrimaryAccent.copy(alpha = 0.4f) else ClayColors.ShadowSpot
             )
             .background(surfaceColor, shape = shape)
             .border(
@@ -438,7 +438,7 @@ fun ClayWeekDayPill(
                         colors = listOf(Color.White.copy(alpha = 0.7f), Color.Black.copy(alpha = 0.15f))
                     )
                     isToday -> Brush.linearGradient(
-                        colors = listOf(ClayColors.ClayCoral, ClayColors.ClayTerracotta)
+                        colors = listOf(ClayColors.PrimaryAccent, ClayColors.PrimaryAccent.copy(alpha = 0.7f))
                     )
                     else -> Brush.linearGradient(
                         colors = listOf(Color.White.copy(alpha = 0.85f), ClayColors.ShadowBevel.copy(alpha = 0.3f))

@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -334,9 +335,21 @@ private fun EmptyEventsCard(modifier: Modifier = Modifier) {
                 .fillMaxWidth()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text(text = "🌿", fontSize = 32.sp)
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .background(ClayColors.PrimaryAccent.copy(alpha = 0.15f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Eco,
+                    contentDescription = null,
+                    tint = ClayColors.PrimaryAccent,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
             Text(
                 text = "No events scheduled",
                 fontSize = 15.sp,
@@ -367,7 +380,7 @@ fun ClayDayCell(
 
     val textColor = when {
         isSelected -> Color.White
-        isToday -> ClayColors.ClaySage
+        isToday -> ClayColors.PrimaryAccent
         isCurrentMonth -> ClayColors.TextPrimary
         else -> ClayColors.TextTertiary.copy(alpha = 0.45f)
     }
@@ -387,11 +400,11 @@ fun ClayDayCell(
                 .then(
                     if (isSelected) {
                         Modifier
-                            .shadow(3.dp, CircleShape, ambientColor = ClayColors.ClaySage.copy(alpha = 0.35f), spotColor = ClayColors.ClaySage.copy(alpha = 0.4f))
-                            .background(ClayColors.ClaySage, CircleShape)
+                            .shadow(3.dp, CircleShape, ambientColor = ClayColors.PrimaryAccent.copy(alpha = 0.35f), spotColor = ClayColors.PrimaryAccent.copy(alpha = 0.4f))
+                            .background(ClayColors.PrimaryAccent, CircleShape)
                     } else if (isToday) {
                         Modifier
-                            .border(1.5.dp, ClayColors.ClaySage, CircleShape)
+                            .border(1.5.dp, ClayColors.PrimaryAccent, CircleShape)
                     } else {
                         Modifier
                     }
@@ -420,7 +433,7 @@ fun ClayDayCell(
                         modifier = Modifier
                             .size(4.dp)
                             .background(
-                                color = if (isSelected) ClayColors.ClaySage else cat.clayColor,
+                                color = if (isSelected) ClayColors.PrimaryAccent else cat.clayColor,
                                 shape = CircleShape
                             )
                     )

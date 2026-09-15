@@ -353,7 +353,10 @@ fun SettingsDialog(
                                     containerColor = ClayColors.PrimaryAccent,
                                     shape = RoundedCornerShape(14.dp),
                                     elevation = 4.dp,
-                                    modifier = Modifier.weight(1f).height(42.dp)
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .heightIn(min = 44.dp)
+                                        .padding(vertical = 2.dp)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Share,
@@ -362,7 +365,13 @@ fun SettingsDialog(
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Share JSON", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                    Text(
+                                        text = "Share JSON",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        softWrap = false
+                                    )
                                 }
 
                                 ClayButton(
@@ -377,7 +386,10 @@ fun SettingsDialog(
                                     contentColor = ClayColors.TextPrimary,
                                     shape = RoundedCornerShape(14.dp),
                                     elevation = 4.dp,
-                                    modifier = Modifier.weight(1f).height(42.dp)
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .heightIn(min = 44.dp)
+                                        .padding(vertical = 2.dp)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.ContentCopy,
@@ -386,7 +398,13 @@ fun SettingsDialog(
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Copy JSON", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                    Text(
+                                        text = "Copy JSON",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        softWrap = false
+                                    )
                                 }
                             }
                         }
@@ -407,10 +425,10 @@ fun SettingsDialog(
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column {
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = "Import Calendar",
                                         fontSize = 14.sp,
@@ -430,7 +448,7 @@ fun SettingsDialog(
                                     contentColor = if (isImportExpanded) Color.White else ClayColors.TextPrimary,
                                     shape = RoundedCornerShape(12.dp),
                                     elevation = 3.dp,
-                                    modifier = Modifier.height(36.dp)
+                                    modifier = Modifier.heightIn(min = 36.dp)
                                 ) {
                                     Icon(
                                         imageVector = if (isImportExpanded) Icons.Default.Close else Icons.Default.Upload,
@@ -462,7 +480,10 @@ fun SettingsDialog(
                                         contentColor = ClayColors.TextPrimary,
                                         shape = RoundedCornerShape(12.dp),
                                         elevation = 2.dp,
-                                        modifier = Modifier.fillMaxWidth().height(38.dp)
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .heightIn(min = 40.dp)
+                                            .padding(vertical = 2.dp)
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Download,
@@ -471,7 +492,11 @@ fun SettingsDialog(
                                             modifier = Modifier.size(16.dp)
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
-                                        Text("Pick .json File From Storage", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                        Text(
+                                            text = "Pick .json File From Storage",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
                                     }
 
                                     ClayTextField(
@@ -545,9 +570,16 @@ fun SettingsDialog(
                                         containerColor = ClayColors.PrimaryAccent,
                                         shape = RoundedCornerShape(14.dp),
                                         elevation = 4.dp,
-                                        modifier = Modifier.fillMaxWidth().height(42.dp)
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .heightIn(min = 44.dp)
+                                            .padding(vertical = 2.dp)
                                     ) {
-                                        Text("Confirm & Load Events", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                        Text(
+                                            text = "Confirm & Load Events",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     }
                                 }
                             }

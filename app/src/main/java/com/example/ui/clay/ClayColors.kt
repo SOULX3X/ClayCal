@@ -52,12 +52,12 @@ object ClayColors {
 
     // Primary Brand Accent based on active theme
     val PrimaryAccent: Color
-        get() = when (activeAccentName) {
-            "Terracotta" -> ClayTerracotta
-            "Lavender" -> ClayLavender
-            "Peach" -> ClayPeach
-            "Blue" -> ClaySoftBlue
-            "Mint" -> ClayMint
+        get() = when (activeAccentName.trim().lowercase()) {
+            "terracotta" -> ClayTerracotta
+            "lavender" -> ClayLavender
+            "peach" -> ClayPeach
+            "blue" -> ClaySoftBlue
+            "mint" -> ClayMint
             else -> ClaySage
         }
 
@@ -78,7 +78,7 @@ object ClayColors {
         get() = if (isDark) Color(0xFFF3A882) else Color(0xFFD46A5B)
 
     val TodayGlow: Color
-        get() = if (isDark) Color(0xFF6B8F77) else Color(0xFF4D6A56)
+        get() = if (isDark) PrimaryAccent.copy(alpha = 0.8f) else PrimaryAccent
 
     val GridLine: Color
         get() = if (isDark) Color(0x22FFFFFF) else Color(0x1442382E)

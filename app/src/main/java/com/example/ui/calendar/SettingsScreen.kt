@@ -440,7 +440,7 @@ private fun NotificationsSubScreen(
                     onCheckedChange = { eventReminders = it },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color.White,
-                        checkedTrackColor = ClayColors.ClaySage
+                        checkedTrackColor = ClayColors.PrimaryAccent
                     )
                 )
             }
@@ -470,7 +470,7 @@ private fun NotificationsSubScreen(
                     onCheckedChange = { allDayReminders = it },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color.White,
-                        checkedTrackColor = ClayColors.ClaySage
+                        checkedTrackColor = ClayColors.PrimaryAccent
                     )
                 )
             }
@@ -548,6 +548,7 @@ private fun BackupRestoreSubScreen(
         modifier = modifier
             .fillMaxSize()
             .background(ClayColors.Background)
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
@@ -579,7 +580,7 @@ private fun BackupRestoreSubScreen(
                         modifier = Modifier.size(22.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Export Backup",
                             fontSize = 15.sp,
@@ -596,10 +597,14 @@ private fun BackupRestoreSubScreen(
                 Spacer(modifier = Modifier.height(14.dp))
                 ClayButton(
                     onClick = onExport,
-                    containerColor = ClayColors.ClaySage,
+                    containerColor = ClayColors.PrimaryAccent,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Export Backup", fontWeight = FontWeight.SemiBold)
+                    Text(
+                        text = "Export Backup",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    )
                 }
             }
         }
@@ -614,7 +619,7 @@ private fun BackupRestoreSubScreen(
                         modifier = Modifier.size(22.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Import Backup",
                             fontSize = 15.sp,
@@ -631,10 +636,14 @@ private fun BackupRestoreSubScreen(
                 Spacer(modifier = Modifier.height(14.dp))
                 ClayButton(
                     onClick = onImport,
-                    containerColor = ClayColors.ClaySage,
+                    containerColor = ClayColors.PrimaryAccent,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Import Backup", fontWeight = FontWeight.SemiBold)
+                    Text(
+                        text = "Import Backup",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    )
                 }
             }
         }
@@ -761,7 +770,7 @@ private fun ThemeOptionRow(
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = "Selected",
-                tint = ClayColors.ClaySage,
+                tint = ClayColors.PrimaryAccent,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -783,7 +792,7 @@ private fun PrivacyItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = ClayColors.ClaySage,
+            tint = ClayColors.PrimaryAccent,
             modifier = Modifier
                 .size(22.dp)
                 .padding(top = 2.dp)

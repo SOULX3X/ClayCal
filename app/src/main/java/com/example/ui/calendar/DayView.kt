@@ -311,7 +311,7 @@ private fun TimelineHourRow(
                 text = timeStr,
                 fontSize = 11.sp,
                 fontWeight = if (isCurrentHour) FontWeight.Bold else FontWeight.Medium,
-                color = if (isCurrentHour) ClayColors.ClayTerracotta else ClayColors.TextTertiary
+                color = if (isCurrentHour) ClayColors.PrimaryAccent else ClayColors.TextTertiary
             )
 
             if (isCurrentHour) {
@@ -319,7 +319,7 @@ private fun TimelineHourRow(
                     modifier = Modifier
                         .padding(top = 4.dp)
                         .size(8.dp)
-                        .background(ClayColors.ClayTerracotta, shape = CircleShape)
+                        .background(ClayColors.PrimaryAccent, shape = CircleShape)
                 )
             }
         }
@@ -330,7 +330,7 @@ private fun TimelineHourRow(
                 .width(2.dp)
                 .height(if (eventsAtHour.isNotEmpty()) 110.dp else 44.dp)
                 .background(
-                    if (isCurrentHour) ClayColors.ClayPeach else ClayColors.GridLine,
+                    if (isCurrentHour) ClayColors.PrimaryAccent.copy(alpha = 0.6f) else ClayColors.GridLine,
                     shape = RoundedCornerShape(1.dp)
                 )
         )

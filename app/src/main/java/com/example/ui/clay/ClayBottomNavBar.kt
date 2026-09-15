@@ -110,7 +110,7 @@ fun ClayBottomNavBar(
                 )
 
                 val iconColor by animateColorAsState(
-                    targetValue = if (isSelected) ClayColors.ClaySage else ClayColors.TextTertiary,
+                    targetValue = if (isSelected) ClayColors.PrimaryAccent else ClayColors.TextTertiary,
                     label = "tab_color"
                 )
 
@@ -137,7 +137,7 @@ fun ClayBottomNavBar(
                                 if (isSelected) {
                                     Modifier
                                         .background(
-                                            color = ClayColors.ClaySage.copy(alpha = 0.14f),
+                                            color = ClayColors.PrimaryAccent.copy(alpha = 0.16f),
                                             shape = CircleShape
                                         )
                                 } else Modifier

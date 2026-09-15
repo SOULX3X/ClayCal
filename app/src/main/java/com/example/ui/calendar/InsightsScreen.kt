@@ -346,7 +346,7 @@ fun InsightsScreen(
                     text = "4h 30m",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = ClayColors.ClaySage
+                    color = ClayColors.PrimaryAccent
                 )
             }
         }

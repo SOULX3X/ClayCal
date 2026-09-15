@@ -116,7 +116,7 @@ fun CalendarStatsBanner(
                     Text(
                         text = "Great pacing for the day!",
                         fontSize = 12.sp,
-                        color = ClayColors.ClaySage,
+                        color = ClayColors.PrimaryAccent,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -145,7 +145,7 @@ fun CalendarStatsBanner(
                 CircularProgressIndicator(
                     progress = { animatedProgress },
                     modifier = Modifier.size(46.dp),
-                    color = ClayColors.ClaySage,
+                    color = ClayColors.PrimaryAccent,
                     trackColor = ClayColors.SurfaceDimmed,
                     strokeWidth = 5.dp,
                     strokeCap = StrokeCap.Round

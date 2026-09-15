@@ -206,7 +206,7 @@ fun EventDetailDialog(
                 // Toggle Completed Button
                 ClayButton(
                     onClick = { onToggleCompleted(!event.isCompleted) },
-                    containerColor = if (event.isCompleted) ClayColors.ClaySage else ClayColors.ClayTerracotta,
+                    containerColor = if (event.isCompleted) ClayColors.PrimaryAccent else ClayColors.ClayTerracotta,
                     contentColor = Color.White,
                     shape = RoundedCornerShape(16.dp),
                     elevation = 4.dp,

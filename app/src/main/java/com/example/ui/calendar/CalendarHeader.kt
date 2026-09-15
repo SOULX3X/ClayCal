@@ -100,7 +100,7 @@ fun CalendarHeader(
                         text = "Today",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = ClayColors.ClaySage
+                        color = ClayColors.PrimaryAccent
                     )
                 }
 
@@ -111,10 +111,10 @@ fun CalendarHeader(
                         .shadow(
                             elevation = 4.dp,
                             shape = CircleShape,
-                            ambientColor = ClayColors.ClaySage.copy(alpha = 0.35f),
-                            spotColor = ClayColors.ClaySage.copy(alpha = 0.4f)
+                            ambientColor = ClayColors.PrimaryAccent.copy(alpha = 0.35f),
+                            spotColor = ClayColors.PrimaryAccent.copy(alpha = 0.4f)
                         )
-                        .background(ClayColors.ClaySage, CircleShape)
+                        .background(ClayColors.PrimaryAccent, CircleShape)
                         .border(
                             width = 1.2.dp,
                             brush = Brush.linearGradient(
@@ -198,7 +198,7 @@ fun CalendarHeader(
                             spotColor = ClayColors.ShadowSpot
                         )
                         .background(
-                            color = if (isSelected) ClayColors.ClaySage else ClayColors.SurfaceMarshmallow,
+                            color = if (isSelected) ClayColors.PrimaryAccent else ClayColors.SurfaceMarshmallow,
                             shape = RoundedCornerShape(14.dp)
                         )
                         .border(
