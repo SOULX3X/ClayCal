@@ -128,7 +128,6 @@ fun MonthView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
@@ -143,27 +142,6 @@ fun MonthView(
                             text = if (count == 0) "No events planned" else "$count events scheduled",
                             fontSize = 12.sp,
                             color = ClayColors.TextSecondary
-                        )
-                    }
-
-                    ClayButton(
-                        onClick = { onAddNewEvent(uiState.selectedDate) },
-                        containerColor = ClayColors.ClayTerracotta,
-                        contentColor = Color.White,
-                        shape = RoundedCornerShape(14.dp),
-                        elevation = 4.dp,
-                        modifier = Modifier.height(36.dp).testTag("quick_add_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = "Add",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -215,7 +193,6 @@ fun MonthView(
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
@@ -230,27 +207,6 @@ fun MonthView(
                             text = if (count == 0) "No events planned" else "$count events scheduled",
                             fontSize = 13.sp,
                             color = ClayColors.TextSecondary
-                        )
-                    }
-
-                    ClayButton(
-                        onClick = { onAddNewEvent(uiState.selectedDate) },
-                        containerColor = ClayColors.ClayTerracotta,
-                        contentColor = Color.White,
-                        shape = RoundedCornerShape(14.dp),
-                        elevation = 4.dp,
-                        modifier = Modifier.height(38.dp).testTag("quick_add_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = "Add",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
