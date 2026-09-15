@@ -1,6 +1,11 @@
 package com.example.ui.calendar
 
+import android.net.Uri
+import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -35,6 +40,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.ViewAgenda
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -57,6 +63,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -64,6 +71,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.AppThemeMode
 import com.example.ui.clay.ClayButton
 import com.example.ui.clay.ClayColors
+import com.example.util.ApkInstaller
 
 private enum class SettingsSubScreen {
     MAIN,
@@ -90,10 +98,31 @@ fun SettingsScreen(
     var defaultView by remember { mutableStateOf("Month") }
     var startWeekOn by remember { mutableStateOf("Monday") }
     var showClearConfirm by remember { mutableStateOf(false) }
+    var showUpdateDialog by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = showClearConfirm || activeSubScreen != SettingsSubScreen.MAIN) {
+    val context = LocalContext.current
+    val apkPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            if (ApkInstaller.canInstallApk(context)) {
+                ApkInstaller.installApkFromUri(context, uri)
+            } else {
+                Toast.makeText(
+                    context,
+                    "Enable 'Allow from this source' for ClayCal to install updates directly",
+                    Toast.LENGTH_LONG
+                ).show()
+                ApkInstaller.openInstallPermissionSettings(context)
+            }
+        }
+    }
+
+    BackHandler(enabled = showClearConfirm || showUpdateDialog || activeSubScreen != SettingsSubScreen.MAIN) {
         if (showClearConfirm) {
             showClearConfirm = false
+        } else if (showUpdateDialog) {
+            showUpdateDialog = false
         } else if (activeSubScreen != SettingsSubScreen.MAIN) {
             activeSubScreen = SettingsSubScreen.MAIN
         }
@@ -114,6 +143,7 @@ fun SettingsScreen(
                 },
                 onOpenOnboarding = onOpenOnboarding,
                 onPromptClearData = { showClearConfirm = true },
+                onPromptUpdate = { showUpdateDialog = true },
                 modifier = modifier
             )
         }
@@ -176,6 +206,83 @@ fun SettingsScreen(
             containerColor = ClayColors.SurfaceMarshmallow
         )
     }
+
+    if (showUpdateDialog) {
+        AlertDialog(
+            onDismissRequest = { showUpdateDialog = false },
+            containerColor = ClayColors.SurfaceMarshmallow,
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.SystemUpdate,
+                    contentDescription = null,
+                    tint = ClayColors.PrimaryAccent,
+                    modifier = Modifier.size(36.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Direct APK Update",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 19.sp,
+                    color = ClayColors.TextPrimary
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "Install an update directly using a downloaded ClayCal .apk file. Your events, settings, and themes will be preserved without resetting.",
+                        fontSize = 14.sp,
+                        color = ClayColors.TextSecondary
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(ClayColors.SurfaceSoftClay, RoundedCornerShape(12.dp))
+                            .padding(12.dp)
+                    ) {
+                        Column {
+                            Text(
+                                text = "Installed Version",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = ClayColors.TextSecondary
+                            )
+                            Text(
+                                text = "ClayCal v${com.example.BuildConfig.VERSION_NAME} (Build ${com.example.BuildConfig.VERSION_CODE})",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = ClayColors.PrimaryAccent
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showUpdateDialog = false
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !ApkInstaller.canInstallApk(context)) {
+                            Toast.makeText(
+                                context,
+                                "Please enable 'Allow from this source' for ClayCal, then pick the APK file.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            ApkInstaller.openInstallPermissionSettings(context)
+                        } else {
+                            apkPickerLauncher.launch("*/*")
+                        }
+                    }
+                ) {
+                    Text("Select APK File", color = ClayColors.PrimaryAccent, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUpdateDialog = false }) {
+                    Text("Cancel", color = ClayColors.TextSecondary)
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -188,6 +295,7 @@ private fun SettingsMainContent(
     onToggleStartWeek: () -> Unit,
     onOpenOnboarding: () -> Unit,
     onPromptClearData: () -> Unit,
+    onPromptUpdate: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -270,6 +378,13 @@ private fun SettingsMainContent(
                 title = "Clear Database",
                 value = "Reset",
                 onClick = onPromptClearData
+            )
+            SettingsDivider()
+            SettingsRow(
+                icon = Icons.Default.SystemUpdate,
+                title = "Direct APK Update",
+                subtitle = "Install update from downloaded .apk",
+                onClick = onPromptUpdate
             )
             SettingsDivider()
             SettingsRow(
