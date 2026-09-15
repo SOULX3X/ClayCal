@@ -229,21 +229,20 @@ private fun SettingsMainContent(
             SettingsRow(
                 icon = Icons.Default.Notifications,
                 title = "Notifications",
-                value = "",
                 onClick = { onNavigateTo(SettingsSubScreen.NOTIFICATIONS) }
             )
             SettingsDivider()
             SettingsRow(
                 icon = Icons.Default.Security,
                 title = "Privacy",
-                value = "Keep your data local",
+                subtitle = "Keep your data local",
                 onClick = { onNavigateTo(SettingsSubScreen.PRIVACY) }
             )
             SettingsDivider()
             SettingsRow(
                 icon = Icons.Default.Storage,
                 title = "Backup & Restore",
-                value = "Export or import your data",
+                subtitle = "Export or import your data",
                 onClick = { onNavigateTo(SettingsSubScreen.BACKUP_RESTORE) }
             )
         }
@@ -267,7 +266,7 @@ private fun SettingsMainContent(
             SettingsRow(
                 icon = Icons.Default.Security,
                 title = "About",
-                value = "ClayCal v1.0.6",
+                value = "ClayCal v${com.example.BuildConfig.VERSION_NAME}",
                 onClick = {}
             )
         }
@@ -448,7 +447,7 @@ private fun NotificationsSubScreen(
             SettingsRow(
                 icon = Icons.Default.Notifications,
                 title = "Default reminder time",
-                value = "10 minutes before",
+                value = "10 min before",
                 onClick = {}
             )
             SettingsDivider()
@@ -696,14 +695,15 @@ private fun SettingsGroupCard(
 private fun SettingsRow(
     icon: ImageVector,
     title: String,
-    value: String,
+    value: String = "",
+    subtitle: String = "",
     onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(horizontal = 18.dp, vertical = 15.dp),
+            .padding(horizontal = 18.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -718,20 +718,36 @@ private fun SettingsRow(
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(14.dp))
-            Text(
-                text = title,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium,
-                color = ClayColors.TextPrimary
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = ClayColors.TextPrimary
+                )
+                if (subtitle.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = subtitle,
+                        fontSize = 12.sp,
+                        color = ClayColors.TextTertiary,
+                        lineHeight = 16.sp
+                    )
+                }
+            }
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             if (value.isNotEmpty()) {
                 Text(
                     text = value,
-                    fontSize = 14.sp,
-                    color = ClayColors.TextTertiary
+                    fontSize = 13.sp,
+                    color = ClayColors.TextTertiary,
+                    maxLines = 1
                 )
                 Spacer(modifier = Modifier.width(6.dp))
             }
