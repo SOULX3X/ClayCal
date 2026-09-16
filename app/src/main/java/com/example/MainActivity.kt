@@ -35,7 +35,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -81,6 +81,7 @@ import com.example.ui.calendar.WeekView
 import com.example.ui.clay.ClayBottomNavBar
 import com.example.ui.clay.ClayColors
 import com.example.ui.clay.MainNavTab
+import com.example.ui.clay.clayMoulded
 import com.example.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
@@ -103,13 +104,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val viewModel: CalendarViewModel = viewModel()
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            val systemDark = isSystemInDarkTheme()
-            val isDark = when (uiState.themeMode) {
-                AppThemeMode.LIGHT -> false
-                AppThemeMode.DARK -> true
-                AppThemeMode.SYSTEM -> systemDark
-            }
-            ClayColors.isDark = isDark
+            ClayColors.isDark = false
             ClayColors.activeAccentName = uiState.activeAccent
 
             val eventToOpen = pendingEventId.value
@@ -120,7 +115,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            MyApplicationTheme(darkTheme = isDark) {
+            MyApplicationTheme(darkTheme = false) {
                 CalendarApp(viewModel = viewModel)
             }
         }
@@ -433,31 +428,17 @@ fun ClayFloatingActionButton(
 
     Box(
         modifier = modifier
-            .size(58.dp)
+            .size(60.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
-            .shadow(
-                elevation = if (isPressed) 2.dp else 8.dp,
+            .clayMoulded(
+                color = containerColor,
                 shape = shape,
-                ambientColor = containerColor.copy(alpha = 0.45f),
-                spotColor = containerColor.copy(alpha = 0.5f)
+                elevation = if (isPressed) 2.dp else 12.dp,
+                isPressed = isPressed
             )
-            .background(containerColor, shape = shape)
-            .border(
-                width = 1.8.dp,
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.85f),
-                        Color.Transparent
-                    ),
-                    start = Offset.Zero,
-                    end = Offset.Infinite
-                ),
-                shape = shape
-            )
-            .clip(shape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -466,7 +447,7 @@ fun ClayFloatingActionButton(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = Icons.Default.Add,
+            imageVector = Icons.Rounded.Add,
             contentDescription = "Add new event",
             tint = Color.White,
             modifier = Modifier.size(28.dp)

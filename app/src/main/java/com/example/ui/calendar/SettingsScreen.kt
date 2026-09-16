@@ -32,21 +32,21 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CloudDownload
-import androidx.compose.material.icons.filled.CloudUpload
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material.icons.filled.SystemUpdate
-import androidx.compose.material.icons.filled.ViewAgenda
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.CloudUpload
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.Security
+import androidx.compose.material.icons.rounded.Storage
+import androidx.compose.material.icons.rounded.SystemUpdate
+import androidx.compose.material.icons.rounded.ViewAgenda
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -78,6 +78,7 @@ import com.example.ui.clay.ClayCard
 import com.example.ui.clay.ClayColors
 import com.example.ui.clay.ClayPill
 import com.example.ui.clay.clayBounceClickable
+import com.example.ui.clay.clayMoulded
 import com.example.util.ApkInstaller
 
 private enum class SettingsSubScreen {
@@ -230,7 +231,7 @@ fun SettingsScreen(
             containerColor = ClayColors.SurfaceMarshmallow,
             icon = {
                 Icon(
-                    imageVector = Icons.Default.SystemUpdate,
+                    imageVector = Icons.Rounded.SystemUpdate,
                     contentDescription = null,
                     tint = ClayColors.PrimaryAccent,
                     modifier = Modifier.size(36.dp)
@@ -333,7 +334,7 @@ private fun SettingsMainContent(
         // Preferences Group (Screen 16)
         SettingsGroupCard {
             SettingsRow(
-                icon = Icons.Default.Palette,
+                icon = Icons.Rounded.Palette,
                 title = "Appearance",
                 value = when (currentThemeMode) {
                     AppThemeMode.LIGHT -> "Light"
@@ -344,14 +345,14 @@ private fun SettingsMainContent(
             )
             SettingsDivider()
             SettingsRow(
-                icon = Icons.Default.ViewAgenda,
+                icon = Icons.Rounded.ViewAgenda,
                 title = "Default view",
                 value = defaultView,
                 onClick = onToggleDefaultView
             )
             SettingsDivider()
             SettingsRow(
-                icon = Icons.Default.ViewAgenda,
+                icon = Icons.Rounded.ViewAgenda,
                 title = "Start week on",
                 value = startWeekOn,
                 onClick = onToggleStartWeek
@@ -361,20 +362,20 @@ private fun SettingsMainContent(
         // Privacy & Data Group
         SettingsGroupCard {
             SettingsRow(
-                icon = Icons.Default.Notifications,
+                icon = Icons.Rounded.Notifications,
                 title = "Notifications",
                 onClick = { onNavigateTo(SettingsSubScreen.NOTIFICATIONS) }
             )
             SettingsDivider()
             SettingsRow(
-                icon = Icons.Default.Security,
+                icon = Icons.Rounded.Security,
                 title = "Privacy",
                 subtitle = "Keep your data local",
                 onClick = { onNavigateTo(SettingsSubScreen.PRIVACY) }
             )
             SettingsDivider()
             SettingsRow(
-                icon = Icons.Default.Storage,
+                icon = Icons.Rounded.Storage,
                 title = "Backup & Restore",
                 subtitle = "Export or import your data",
                 onClick = { onNavigateTo(SettingsSubScreen.BACKUP_RESTORE) }
@@ -384,28 +385,28 @@ private fun SettingsMainContent(
         // About & Tour Group
         SettingsGroupCard {
             SettingsRow(
-                icon = Icons.Default.Visibility,
+                icon = Icons.Rounded.Visibility,
                 title = "Welcome Tour",
                 value = "View guide",
                 onClick = onOpenOnboarding
             )
             SettingsDivider()
             SettingsRow(
-                icon = Icons.Default.Storage,
+                icon = Icons.Rounded.Storage,
                 title = "Clear Database",
                 value = "Reset",
                 onClick = onPromptClearData
             )
             SettingsDivider()
             SettingsRow(
-                icon = Icons.Default.SystemUpdate,
+                icon = Icons.Rounded.SystemUpdate,
                 title = "Direct APK Update",
                 subtitle = "Install update from downloaded .apk",
                 onClick = onPromptUpdate
             )
             SettingsDivider()
             SettingsRow(
-                icon = Icons.Default.Security,
+                icon = Icons.Rounded.Security,
                 title = "About",
                 value = "ClayCal v${com.example.BuildConfig.VERSION_NAME}",
                 onClick = {}
@@ -438,7 +439,7 @@ private fun AppearanceSubScreen(
         ) {
             IconButton(onClick = onBack) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "Back",
                     tint = ClayColors.TextPrimary
                 )
@@ -546,20 +547,20 @@ private fun AppearanceSubScreen(
         }
 
         // Live Claymorphic Palette Preview
-        val previewShape = RoundedCornerShape(22.dp)
+        val previewShape = RoundedCornerShape(32.dp)
         ClayCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp),
             shape = previewShape,
             surfaceColor = ClayColors.SurfaceSoftClay,
-            elevation = 4.dp
+            elevation = 5.dp
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -567,13 +568,12 @@ private fun AppearanceSubScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(16.dp)
-                            .shadow(2.dp, CircleShape)
-                            .background(ClayColors.PrimaryAccent, CircleShape)
+                            .size(18.dp)
+                            .clayMoulded(ClayColors.PrimaryAccent, shape = CircleShape, elevation = 2.dp)
                     )
                     Text(
                         text = "Active Theme: $activeAccent Clay",
-                        fontSize = 14.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = ClayColors.TextPrimary
                     )
@@ -581,22 +581,24 @@ private fun AppearanceSubScreen(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Sample Clay Pill
-                    val pillShape = RoundedCornerShape(16.dp)
+                    val pillShape = RoundedCornerShape(24.dp)
                     Box(
                         modifier = Modifier
-                            .shadow(2.dp, pillShape)
-                            .background(ClayColors.PrimaryAccent.copy(alpha = 0.18f), pillShape)
-                            .border(1.dp, ClayColors.PrimaryAccent.copy(alpha = 0.45f), pillShape)
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .clayMoulded(
+                                color = ClayColors.PrimaryAccent.copy(alpha = 0.22f),
+                                shape = pillShape,
+                                elevation = 2.dp
+                            )
+                            .padding(horizontal = 14.dp, vertical = 8.dp)
                     ) {
                         Text(
                             text = "Sample Event",
                             fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            fontWeight = FontWeight.Bold,
                             color = ClayColors.PrimaryAccent
                         )
                     }
@@ -605,7 +607,7 @@ private fun AppearanceSubScreen(
                     ClayButton(
                         onClick = { },
                         containerColor = ClayColors.PrimaryAccent,
-                        shape = RoundedCornerShape(18.dp),
+                        shape = RoundedCornerShape(24.dp),
                         elevation = 4.dp,
                         modifier = Modifier.weight(1f)
                     ) {
@@ -641,27 +643,20 @@ private fun ClayThemeColorBubble(
     ) {
         Box(
             modifier = Modifier
-                .size(46.dp)
-                .shadow(
-                    elevation = if (isSelected) 6.dp else 2.dp,
+                .size(48.dp)
+                .clayMoulded(
+                    color = color,
                     shape = bubbleShape,
-                    ambientColor = color.copy(alpha = 0.45f),
-                    spotColor = color.copy(alpha = 0.55f)
-                )
-                .background(color, shape = bubbleShape)
-                .border(
-                    width = if (isSelected) 3.dp else 1.5.dp,
-                    color = if (isSelected) Color.White else Color.White.copy(alpha = 0.55f),
-                    shape = bubbleShape
+                    elevation = if (isSelected) 6.dp else 2.dp
                 ),
             contentAlignment = Alignment.Center
         ) {
             if (isSelected) {
                 Icon(
-                    imageVector = Icons.Default.Check,
+                    imageVector = Icons.Rounded.Check,
                     contentDescription = "Selected",
                     tint = Color.White,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(22.dp)
                 )
             }
         }
@@ -721,7 +716,7 @@ private fun NotificationsSubScreen(
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "Back",
                     tint = ClayColors.TextPrimary
                 )
@@ -883,7 +878,7 @@ private fun NotificationsSubScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.NotificationsActive,
+                        imageVector = Icons.Rounded.NotificationsActive,
                         contentDescription = null,
                         tint = ClayColors.PrimaryAccent,
                         modifier = Modifier.size(24.dp)
@@ -918,7 +913,7 @@ private fun NotificationsSubScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Notifications,
+                        imageVector = Icons.Rounded.Notifications,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
@@ -972,7 +967,7 @@ private fun PrivacySubScreen(
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "Back",
                     tint = ClayColors.TextPrimary
                 )
@@ -989,25 +984,25 @@ private fun PrivacySubScreen(
         // Screen 18 Layout: 4 items
         SettingsGroupCard {
             PrivacyItem(
-                icon = Icons.Default.Lock,
+                icon = Icons.Rounded.Lock,
                 title = "No Accounts",
                 subtitle = "Use ClayCal without signing up or sharing personal information."
             )
             SettingsDivider()
             PrivacyItem(
-                icon = Icons.Default.Storage,
+                icon = Icons.Rounded.Storage,
                 title = "Local Storage Only",
                 subtitle = "Your events are stored on your device, not in the cloud."
             )
             SettingsDivider()
             PrivacyItem(
-                icon = Icons.Default.VisibilityOff,
+                icon = Icons.Rounded.VisibilityOff,
                 title = "No Tracking",
                 subtitle = "We don't collect analytics or track your behavior."
             )
             SettingsDivider()
             PrivacyItem(
-                icon = Icons.Default.Security,
+                icon = Icons.Rounded.Security,
                 title = "Open Source",
                 subtitle = "Transparency you can trust."
             )
@@ -1033,7 +1028,7 @@ private fun BackupRestoreSubScreen(
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "Back",
                     tint = ClayColors.TextPrimary
                 )
@@ -1052,7 +1047,7 @@ private fun BackupRestoreSubScreen(
             Column(modifier = Modifier.padding(18.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Default.CloudUpload,
+                        imageVector = Icons.Rounded.CloudUpload,
                         contentDescription = null,
                         tint = ClayColors.TextPrimary,
                         modifier = Modifier.size(22.dp)
@@ -1091,7 +1086,7 @@ private fun BackupRestoreSubScreen(
             Column(modifier = Modifier.padding(18.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Default.CloudDownload,
+                        imageVector = Icons.Rounded.CloudDownload,
                         contentDescription = null,
                         tint = ClayColors.TextPrimary,
                         modifier = Modifier.size(22.dp)
@@ -1137,32 +1132,14 @@ private fun BackupRestoreSubScreen(
 
 @Composable
 private fun SettingsGroupCard(
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = 4.dp,
-                shape = RoundedCornerShape(26.dp),
-                ambientColor = ClayColors.ShadowAmbient,
-                spotColor = ClayColors.ShadowSpot
-            )
-            .background(
-                color = ClayColors.SurfaceMarshmallow,
-                shape = RoundedCornerShape(26.dp)
-            )
-            .border(
-                width = 1.2.dp,
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.9f),
-                        ClayColors.ShadowBevel.copy(alpha = 0.35f)
-                    )
-                ),
-                shape = RoundedCornerShape(26.dp)
-            )
-            .clip(RoundedCornerShape(26.dp))
+    ClayCard(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(32.dp),
+        surfaceColor = ClayColors.SurfaceMarshmallow,
+        elevation = 6.dp
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             content()
@@ -1231,7 +1208,7 @@ private fun SettingsRow(
                 Spacer(modifier = Modifier.width(6.dp))
             }
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
                 contentDescription = null,
                 tint = ClayColors.TextTertiary,
                 modifier = Modifier.size(16.dp)
@@ -1263,7 +1240,7 @@ private fun ThemeOptionRow(
 
         if (isSelected) {
             Icon(
-                imageVector = Icons.Default.Check,
+                imageVector = Icons.Rounded.Check,
                 contentDescription = "Selected",
                 tint = ClayColors.PrimaryAccent,
                 modifier = Modifier.size(20.dp)

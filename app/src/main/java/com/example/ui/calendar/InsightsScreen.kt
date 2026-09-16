@@ -20,7 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -33,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -44,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.Category
 import com.example.ui.clay.ClayColors
+import com.example.ui.clay.clayMoulded
 
 enum class InsightsPeriod(val label: String) {
     THIS_WEEK("This Week"),
@@ -126,40 +126,31 @@ fun InsightsScreen(
             )
 
             Box {
+                val selectorShape = RoundedCornerShape(24.dp)
                 Row(
                     modifier = Modifier
-                        .shadow(
-                            elevation = 2.dp,
-                            shape = RoundedCornerShape(16.dp),
-                            ambientColor = ClayColors.ShadowAmbient,
-                            spotColor = ClayColors.ShadowSpot
-                        )
-                        .background(
+                        .clayMoulded(
                             color = ClayColors.SurfaceMarshmallow,
-                            shape = RoundedCornerShape(16.dp)
+                            shape = selectorShape,
+                            elevation = 3.dp
                         )
-                        .border(
-                            width = 1.dp,
-                            color = ClayColors.ShadowBevel.copy(alpha = 0.5f),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(selectorShape)
                         .clickable { isPeriodDropdownOpen = true }
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                        .padding(horizontal = 14.dp, vertical = 9.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = selectedPeriod.label,
                         fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.Bold,
                         color = ClayColors.TextPrimary
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
+                        imageVector = Icons.Rounded.KeyboardArrowDown,
                         contentDescription = "Select period",
                         tint = ClayColors.TextSecondary,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
 
@@ -181,28 +172,14 @@ fun InsightsScreen(
         }
 
         // Donut Chart Card
+        val chartShape = RoundedCornerShape(32.dp)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(
-                    elevation = 6.dp,
-                    shape = RoundedCornerShape(24.dp),
-                    ambientColor = ClayColors.ShadowAmbient,
-                    spotColor = ClayColors.ShadowSpot
-                )
-                .background(
+                .clayMoulded(
                     color = ClayColors.SurfaceMarshmallow,
-                    shape = RoundedCornerShape(24.dp)
-                )
-                .border(
-                    width = 1.5.dp,
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.9f),
-                            ClayColors.ShadowBevel.copy(alpha = 0.35f)
-                        )
-                    ),
-                    shape = RoundedCornerShape(24.dp)
+                    shape = chartShape,
+                    elevation = 6.dp
                 )
                 .padding(vertical = 32.dp),
             contentAlignment = Alignment.Center
@@ -274,8 +251,8 @@ fun InsightsScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(10.dp)
-                                .background(color, CircleShape)
+                                .size(12.dp)
+                                .clayMoulded(color, CircleShape, elevation = 1.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
@@ -297,30 +274,16 @@ fun InsightsScreen(
         }
 
         // Most Active Day Card
+        val activeDayShape = RoundedCornerShape(32.dp)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(
-                    elevation = 4.dp,
-                    shape = RoundedCornerShape(20.dp),
-                    ambientColor = ClayColors.ShadowAmbient,
-                    spotColor = ClayColors.ShadowSpot
-                )
-                .background(
+                .clayMoulded(
                     color = ClayColors.SurfaceMarshmallow,
-                    shape = RoundedCornerShape(20.dp)
+                    shape = activeDayShape,
+                    elevation = 5.dp
                 )
-                .border(
-                    width = 1.2.dp,
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.9f),
-                            ClayColors.ShadowBevel.copy(alpha = 0.35f)
-                        )
-                    ),
-                    shape = RoundedCornerShape(20.dp)
-                )
-                .padding(18.dp)
+                .padding(20.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

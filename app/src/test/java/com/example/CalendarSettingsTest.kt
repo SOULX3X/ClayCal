@@ -36,6 +36,48 @@ class CalendarSettingsTest {
         assertEquals(false, prefs.hasCompletedTour)
         prefs.hasCompletedTour = true
         assertEquals(true, prefs.hasCompletedTour)
+
+        // Notification preferences
+        prefs.notificationsEnabled = true
+        assertEquals(true, prefs.notificationsEnabled)
+        prefs.defaultReminderMinutes = 30
+        assertEquals(30, prefs.defaultReminderMinutes)
+    }
+
+    @Test
+    fun `event notification scheduler calculates correct trigger millis`() {
+        val event = CalendarEvent(
+            id = 1,
+            title = "Team Standup",
+            description = "Daily sync",
+            category = "Work",
+            year = 2026,
+            month = 9,
+            day = 16,
+            startHour = 10,
+            startMinute = 0,
+            endHour = 10,
+            endMinute = 30,
+            colorHex = "#6B9B7A",
+            location = "Room 3",
+            reminderMinutesBefore = 15
+        )
+
+        val triggerMillis = com.example.notification.EventNotificationScheduler.calculateTriggerMillis(event)
+
+        val calendar = java.util.Calendar.getInstance().apply {
+            set(java.util.Calendar.YEAR, 2026)
+            set(java.util.Calendar.MONTH, 8) // 0-based month for September
+            set(java.util.Calendar.DAY_OF_MONTH, 16)
+            set(java.util.Calendar.HOUR_OF_DAY, 10)
+            set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }
+        val expectedStart = calendar.timeInMillis
+        val expectedTrigger = expectedStart - (15 * 60 * 1000L)
+
+        assertEquals(expectedTrigger, triggerMillis)
     }
 
     @Test

@@ -28,7 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,8 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
@@ -50,6 +48,7 @@ import com.example.model.SimpleDate
 import com.example.ui.clay.ClayButton
 import com.example.ui.clay.ClayCard
 import com.example.ui.clay.ClayColors
+import com.example.ui.clay.clayMoulded
 
 @Composable
 fun WeekView(
@@ -206,7 +205,7 @@ fun WeekView(
                         modifier = Modifier.height(36.dp).testTag("week_add_button")
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Add,
+                            imageVector = Icons.Rounded.Add,
                             contentDescription = "Add",
                             tint = Color.White,
                             modifier = Modifier.size(16.dp)
@@ -284,9 +283,9 @@ fun WeekView(
             item {
                 ClayCard(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(32.dp),
                     surfaceColor = ClayColors.SurfaceMarshmallow,
-                    elevation = 6.dp
+                    elevation = 7.dp
                 ) {
                     Row(
                         modifier = Modifier
@@ -338,19 +337,19 @@ fun WeekView(
                         onClick = { onAddNewEvent(selected) },
                         containerColor = ClayColors.ClayTerracotta,
                         contentColor = Color.White,
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(20.dp),
                         elevation = 4.dp,
-                        modifier = Modifier.height(38.dp).testTag("week_add_button")
+                        modifier = Modifier.height(40.dp).testTag("week_add_button")
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Add,
+                            imageVector = Icons.Rounded.Add,
                             contentDescription = "Add",
                             tint = Color.White,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(18.dp)
                         )
                         Text(
                             text = "Add",
-                            fontSize = 12.sp,
+                            fontSize = 13.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -362,9 +361,9 @@ fun WeekView(
                 item {
                     ClayCard(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(22.dp),
+                        shape = RoundedCornerShape(32.dp),
                         surfaceColor = ClayColors.SurfaceSoftClay,
-                        elevation = 2.dp
+                        elevation = 3.dp
                     ) {
                         Column(
                             modifier = Modifier
@@ -417,7 +416,7 @@ fun ClayWeekDayPill(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(20.dp)
+    val shape = RoundedCornerShape(26.dp)
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
@@ -432,7 +431,7 @@ fun ClayWeekDayPill(
 
     val targetSurfaceColor = when {
         isSelected -> ClayColors.PrimaryAccent
-        isToday -> ClayColors.PrimaryAccent.copy(alpha = 0.15f)
+        isToday -> ClayColors.PrimaryAccent.copy(alpha = 0.18f)
         else -> ClayColors.SurfaceSoftClay
     }
     val surfaceColor by animateColorAsState(
@@ -441,7 +440,7 @@ fun ClayWeekDayPill(
         label = "pill_surface_color"
     )
 
-    val targetElevation = if (isSelected) 6.dp else 1.dp
+    val targetElevation = if (isSelected) 6.dp else 2.dp
     val elevation by animateDpAsState(
         targetValue = targetElevation,
         animationSpec = spring(
@@ -464,35 +463,18 @@ fun ClayWeekDayPill(
                 scaleX = scale
                 scaleY = scale
             }
-            .shadow(
-                elevation = elevation,
+            .clayMoulded(
+                color = surfaceColor,
                 shape = shape,
-                ambientColor = if (isSelected) ClayColors.PrimaryAccent.copy(alpha = 0.35f) else ClayColors.ShadowAmbient,
-                spotColor = if (isSelected) ClayColors.PrimaryAccent.copy(alpha = 0.4f) else ClayColors.ShadowSpot
+                elevation = elevation,
+                isPressed = isPressed
             )
-            .background(surfaceColor, shape = shape)
-            .border(
-                width = if (isToday && !isSelected) 1.5.dp else 1.dp,
-                brush = when {
-                    isSelected -> Brush.linearGradient(
-                        colors = listOf(Color.White.copy(alpha = 0.7f), Color.Black.copy(alpha = 0.15f))
-                    )
-                    isToday -> Brush.linearGradient(
-                        colors = listOf(ClayColors.PrimaryAccent, ClayColors.PrimaryAccent.copy(alpha = 0.7f))
-                    )
-                    else -> Brush.linearGradient(
-                        colors = listOf(Color.White.copy(alpha = 0.85f), ClayColors.ShadowBevel.copy(alpha = 0.3f))
-                    )
-                },
-                shape = shape
-            )
-            .clip(shape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick
             )
-            .padding(vertical = 10.dp),
+            .padding(vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -518,9 +500,10 @@ fun ClayWeekDayPill(
                 Box(
                     modifier = Modifier
                         .size(6.dp)
-                        .background(
+                        .clayMoulded(
                             color = if (isSelected) Color.White else ClayColors.ClayCoral,
-                            shape = CircleShape
+                            shape = CircleShape,
+                            elevation = 1.dp
                         )
                 )
             } else {

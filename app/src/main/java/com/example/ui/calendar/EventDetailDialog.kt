@@ -16,15 +16,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.PriorityHigh
-import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Event
+import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.PriorityHigh
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,7 +61,7 @@ fun EventDetailDialog(
                 .widthIn(max = 500.dp)
                 .fillMaxHeight(0.92f)
                 .padding(vertical = 12.dp),
-            shape = RoundedCornerShape(28.dp),
+            shape = RoundedCornerShape(32.dp),
             surfaceColor = ClayColors.SurfaceMarshmallow,
             elevation = 10.dp
         ) {
@@ -86,7 +86,7 @@ fun EventDetailDialog(
 
                     ClayIconButton(
                         onClick = onDismiss,
-                        icon = Icons.Default.Close,
+                        icon = Icons.Rounded.Close,
                         contentDescription = "Close",
                         size = 36.dp,
                         elevation = 2.dp
@@ -105,7 +105,7 @@ fun EventDetailDialog(
                 // Date & Time Card
                 ClayCard(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(24.dp),
                     surfaceColor = ClayColors.SurfaceSoftClay,
                     elevation = 2.dp
                 ) {
@@ -118,7 +118,7 @@ fun EventDetailDialog(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Event,
+                                imageVector = Icons.Rounded.Event,
                                 contentDescription = "Date",
                                 tint = category.clayColor,
                                 modifier = Modifier.size(18.dp)
@@ -136,7 +136,7 @@ fun EventDetailDialog(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Schedule,
+                                imageVector = Icons.Rounded.Schedule,
                                 contentDescription = "Time",
                                 tint = category.clayColor,
                                 modifier = Modifier.size(18.dp)
@@ -154,7 +154,7 @@ fun EventDetailDialog(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.LocationOn,
+                                    imageVector = Icons.Rounded.LocationOn,
                                     contentDescription = "Location",
                                     tint = ClayColors.TextTertiary,
                                     modifier = Modifier.size(18.dp)
@@ -172,7 +172,7 @@ fun EventDetailDialog(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.PriorityHigh,
+                                imageVector = Icons.Rounded.PriorityHigh,
                                 contentDescription = "Priority",
                                 tint = ClayColors.ClayAmber,
                                 modifier = Modifier.size(18.dp)
@@ -189,7 +189,7 @@ fun EventDetailDialog(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Notifications,
+                                imageVector = Icons.Rounded.Notifications,
                                 contentDescription = "Reminder Notification",
                                 tint = if (event.reminderMinutesBefore >= 0) ClayColors.PrimaryAccent else ClayColors.TextTertiary,
                                 modifier = Modifier.size(18.dp)
@@ -237,12 +237,12 @@ fun EventDetailDialog(
                     onClick = { onToggleCompleted(!event.isCompleted) },
                     containerColor = if (event.isCompleted) ClayColors.PrimaryAccent else ClayColors.ClayTerracotta,
                     contentColor = Color.White,
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(22.dp),
                     elevation = 4.dp,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Check,
+                        imageVector = Icons.Rounded.Check,
                         contentDescription = "Complete",
                         tint = Color.White,
                         modifier = Modifier.size(18.dp)
@@ -264,12 +264,12 @@ fun EventDetailDialog(
                         onClick = onEdit,
                         containerColor = ClayColors.SurfaceSoftClay,
                         contentColor = ClayColors.TextPrimary,
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(22.dp),
                         elevation = 2.dp,
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Edit,
+                            imageVector = Icons.Rounded.Edit,
                             contentDescription = "Edit",
                             tint = ClayColors.TextPrimary,
                             modifier = Modifier.size(16.dp)
@@ -282,12 +282,12 @@ fun EventDetailDialog(
                         onClick = onDelete,
                         containerColor = ClayColors.ClayTerracotta.copy(alpha = 0.15f),
                         contentColor = ClayColors.ClayTerracotta,
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(22.dp),
                         elevation = 2.dp,
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Delete,
+                            imageVector = Icons.Rounded.Delete,
                             contentDescription = "Delete",
                             tint = ClayColors.ClayTerracotta,
                             modifier = Modifier.size(16.dp)

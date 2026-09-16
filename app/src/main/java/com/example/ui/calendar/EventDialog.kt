@@ -24,12 +24,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -166,7 +166,7 @@ fun EventDialog(
 
                         ClayIconButton(
                             onClick = onDismiss,
-                            icon = Icons.Default.Close,
+                            icon = Icons.Rounded.Close,
                             contentDescription = "Close",
                             size = 36.dp,
                             elevation = 2.dp
@@ -287,9 +287,9 @@ fun EventDialog(
                             ) {
                                 ClayIconButton(
                                     onClick = { selectedDate = selectedDate.addDays(-1) },
-                                    icon = Icons.AutoMirrored.Filled.ArrowBack,
+                                    icon = Icons.AutoMirrored.Rounded.ArrowBack,
                                     contentDescription = "Previous Day",
-                                    size = 34.dp,
+                                    size = 36.dp,
                                     elevation = 2.dp
                                 )
 
@@ -302,9 +302,9 @@ fun EventDialog(
 
                                 ClayIconButton(
                                     onClick = { selectedDate = selectedDate.addDays(1) },
-                                    icon = Icons.AutoMirrored.Filled.ArrowForward,
+                                    icon = Icons.AutoMirrored.Rounded.ArrowForward,
                                     contentDescription = "Next Day",
-                                    size = 34.dp,
+                                    size = 36.dp,
                                     elevation = 2.dp
                                 )
                             }
@@ -327,7 +327,7 @@ fun EventDialog(
                             // Start Time
                             ClayCard(
                                 modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(20.dp),
+                                shape = RoundedCornerShape(24.dp),
                                 surfaceColor = ClayColors.SurfaceSoftClay,
                                 elevation = 2.dp
                             ) {
@@ -369,7 +369,7 @@ fun EventDialog(
                             // End Time
                             ClayCard(
                                 modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(20.dp),
+                                shape = RoundedCornerShape(24.dp),
                                 surfaceColor = ClayColors.SurfaceSoftClay,
                                 elevation = 2.dp
                             ) {
@@ -424,7 +424,7 @@ fun EventDialog(
                             placeholder = "e.g. Room 3A, Cafe, Google Meet...",
                             leadingIcon = {
                                 Icon(
-                                    imageVector = Icons.Default.LocationOn,
+                                    imageVector = Icons.Rounded.LocationOn,
                                     contentDescription = "Location",
                                     tint = ClayColors.TextTertiary,
                                     modifier = Modifier.size(16.dp)

@@ -64,9 +64,9 @@ fun ScheduleView(
             ) {
                 ClayCard(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(32.dp),
                     surfaceColor = ClayColors.SurfaceMarshmallow,
-                    elevation = 6.dp
+                    elevation = 7.dp
                 ) {
                     Column(
                         modifier = Modifier
@@ -293,9 +293,9 @@ private fun DateHeaderRow(date: SimpleDate, count: Int, modifier: Modifier = Mod
 private fun EmptyFilterCard(modifier: Modifier = Modifier) {
     ClayCard(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(32.dp),
         surfaceColor = ClayColors.SurfaceSoftClay,
-        elevation = 3.dp
+        elevation = 4.dp
     ) {
         Column(
             modifier = Modifier

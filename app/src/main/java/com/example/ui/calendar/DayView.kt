@@ -1,7 +1,6 @@
 package com.example.ui.calendar
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,7 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,6 +38,7 @@ import com.example.model.SimpleTime
 import com.example.ui.clay.ClayButton
 import com.example.ui.clay.ClayCard
 import com.example.ui.clay.ClayColors
+import com.example.ui.clay.clayMoulded
 
 @Composable
 fun DayView(
@@ -151,7 +151,7 @@ fun DayView(
                                 .height(40.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Add,
+                                imageVector = Icons.Rounded.Add,
                                 contentDescription = "Add Event",
                                 tint = Color.White,
                                 modifier = Modifier.size(16.dp)
@@ -209,14 +209,14 @@ fun DayView(
             item {
                 ClayCard(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(22.dp),
+                    shape = RoundedCornerShape(32.dp),
                     surfaceColor = ClayColors.SurfaceMarshmallow,
-                    elevation = 5.dp
+                    elevation = 6.dp
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
+                            .padding(18.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -238,19 +238,19 @@ fun DayView(
                             onClick = { onAddNewEventAtHour(selected, 9) },
                             containerColor = ClayColors.ClayTerracotta,
                             contentColor = Color.White,
-                            shape = RoundedCornerShape(14.dp),
+                            shape = RoundedCornerShape(20.dp),
                             elevation = 4.dp,
-                            modifier = Modifier.height(38.dp)
+                            modifier = Modifier.height(40.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Add,
+                                imageVector = Icons.Rounded.Add,
                                 contentDescription = "Add",
                                 tint = Color.White,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                             Text(
                                 text = "Add",
-                                fontSize = 12.sp,
+                                fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -355,15 +355,15 @@ private fun TimelineHourRow(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(36.dp)
-                        .border(
-                            width = 1.dp,
-                            color = ClayColors.ShadowBevel.copy(alpha = 0.4f),
-                            shape = RoundedCornerShape(12.dp)
+                        .height(40.dp)
+                        .clayMoulded(
+                            color = ClayColors.SurfaceSoftClay.copy(alpha = 0.55f),
+                            shape = RoundedCornerShape(20.dp),
+                            elevation = 1.dp,
+                            isPressed = false
                         )
-                        .clip(RoundedCornerShape(12.dp))
                         .clickable { onAddNewEventAtHour(selected, hour) }
-                        .padding(horizontal = 12.dp),
+                        .padding(horizontal = 14.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     Row(
@@ -371,15 +371,16 @@ private fun TimelineHourRow(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Add,
+                            imageVector = Icons.Rounded.Add,
                             contentDescription = "Add at this time",
-                            tint = ClayColors.TextTertiary.copy(alpha = 0.6f),
-                            modifier = Modifier.size(14.dp)
+                            tint = ClayColors.TextTertiary.copy(alpha = 0.7f),
+                            modifier = Modifier.size(16.dp)
                         )
                         Text(
                             text = "Mold event at ${SimpleTime(hour, 0).formatted()}",
-                            fontSize = 11.sp,
-                            color = ClayColors.TextTertiary.copy(alpha = 0.6f)
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = ClayColors.TextTertiary.copy(alpha = 0.7f)
                         )
                     }
                 }

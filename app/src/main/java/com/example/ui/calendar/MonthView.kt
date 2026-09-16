@@ -29,8 +29,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Eco
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Eco
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,8 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
@@ -53,6 +51,7 @@ import com.example.model.SimpleDate
 import com.example.ui.clay.ClayButton
 import com.example.ui.clay.ClayCard
 import com.example.ui.clay.ClayColors
+import com.example.ui.clay.clayMoulded
 
 private data class MonthDayItem(
     val date: SimpleDate,
@@ -336,25 +335,29 @@ private fun EmptyEventsCard(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(26.dp),
+        shape = RoundedCornerShape(32.dp),
         surfaceColor = ClayColors.SurfaceMarshmallow,
-        elevation = 3.dp
+        elevation = 4.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(54.dp)
-                    .background(ClayColors.PrimaryAccent.copy(alpha = 0.15f), CircleShape),
+                    .size(58.dp)
+                    .clayMoulded(
+                        color = ClayColors.PrimaryAccent.copy(alpha = 0.2f),
+                        shape = CircleShape,
+                        elevation = 4.dp
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Eco,
+                    imageVector = Icons.Rounded.Eco,
                     contentDescription = null,
                     tint = ClayColors.PrimaryAccent,
                     modifier = Modifier.size(28.dp)
@@ -362,7 +365,7 @@ private fun EmptyEventsCard(modifier: Modifier = Modifier) {
             }
             Text(
                 text = "No events scheduled",
-                fontSize = 15.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = ClayColors.TextPrimary
             )
@@ -386,12 +389,12 @@ fun ClayDayCell(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val cellShape = RoundedCornerShape(14.dp)
+    val cellShape = CircleShape
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.86f else if (isSelected) 1.06f else 1f,
+        targetValue = if (isPressed) 0.86f else if (isSelected) 1.08f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow
@@ -399,37 +402,12 @@ fun ClayDayCell(
         label = "day_cell_scale"
     )
 
-    val targetBg = when {
-        isSelected -> ClayColors.PrimaryAccent
-        isToday -> ClayColors.PrimaryAccent.copy(alpha = 0.15f)
-        else -> Color.Transparent
-    }
-    val animatedBg by animateColorAsState(
-        targetValue = targetBg,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "day_cell_bg"
-    )
-
     val targetTextColor = when {
         isSelected -> Color.White
         isToday -> ClayColors.PrimaryAccent
         isCurrentMonth -> ClayColors.TextPrimary
-        else -> ClayColors.TextTertiary.copy(alpha = 0.45f)
+        else -> ClayColors.TextTertiary.copy(alpha = 0.40f)
     }
-    val animatedTextColor by animateColorAsState(
-        targetValue = targetTextColor,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "day_cell_text"
-    )
-
-    val animatedElev by animateDpAsState(
-        targetValue = if (isSelected) 4.dp else 0.dp,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMediumLow
-        ),
-        label = "day_cell_elev"
-    )
 
     Column(
         modifier = modifier
@@ -452,28 +430,20 @@ fun ClayDayCell(
             modifier = Modifier
                 .size(34.dp)
                 .then(
-                    if (isSelected) {
-                        Modifier
-                            .shadow(
-                                elevation = animatedElev,
-                                shape = cellShape,
-                                ambientColor = ClayColors.PrimaryAccent.copy(alpha = 0.35f),
-                                spotColor = ClayColors.PrimaryAccent.copy(alpha = 0.4f)
-                            )
-                            .background(animatedBg, cellShape)
-                            .border(
-                                width = 1.2.dp,
-                                brush = Brush.linearGradient(
-                                    colors = listOf(Color.White.copy(alpha = 0.7f), Color.Transparent)
-                                ),
-                                shape = cellShape
-                            )
-                    } else if (isToday) {
-                        Modifier
-                            .background(animatedBg, cellShape)
-                            .border(1.5.dp, ClayColors.PrimaryAccent, cellShape)
-                    } else {
-                        Modifier.background(animatedBg, cellShape)
+                    when {
+                        isSelected -> Modifier.clayMoulded(
+                            color = ClayColors.PrimaryAccent,
+                            shape = cellShape,
+                            elevation = if (isPressed) 2.dp else 6.dp,
+                            isPressed = isPressed
+                        )
+                        isToday -> Modifier.clayMoulded(
+                            color = ClayColors.PrimaryAccent.copy(alpha = 0.22f),
+                            shape = cellShape,
+                            elevation = if (isPressed) 1.dp else 3.dp,
+                            isPressed = isPressed
+                        )
+                        else -> Modifier
                     }
                 ),
             contentAlignment = Alignment.Center
@@ -481,8 +451,8 @@ fun ClayDayCell(
             Text(
                 text = "$day",
                 fontSize = 14.sp,
-                fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal,
-                color = animatedTextColor
+                fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Medium,
+                color = targetTextColor
             )
         }
 
@@ -490,7 +460,7 @@ fun ClayDayCell(
         if (events.isNotEmpty() && isCurrentMonth) {
             Spacer(modifier = Modifier.height(2.dp))
             Row(
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                horizontalArrangement = Arrangement.spacedBy(3.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val displayEvents = events.take(3)
@@ -498,16 +468,17 @@ fun ClayDayCell(
                     val cat = Category.fromName(event.category)
                     Box(
                         modifier = Modifier
-                            .size(4.dp)
-                            .background(
+                            .size(5.dp)
+                            .clayMoulded(
                                 color = if (isSelected) ClayColors.PrimaryAccent else cat.clayColor,
-                                shape = CircleShape
+                                shape = CircleShape,
+                                elevation = 1.dp
                             )
                     )
                 }
             }
         } else {
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(7.dp))
         }
     }
 }

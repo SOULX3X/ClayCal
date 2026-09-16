@@ -5,27 +5,24 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -47,39 +45,170 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.max
+
+/**
+ * Applies the true Claymorphism visual traits:
+ * 1. Big outer drop shadow in the element's OWN hue (not grey) so it looks moulded, not floating.
+ * 2. Two inset shadows:
+ *    - Light top-left inset shadow (white soft shine)
+ *    - Darker bottom-right inset shadow (20% darker shade of the SAME hue)
+ * 3. Smooth inflated pillowy cushion curve.
+ * 4. Zero thin borders or sharp wireframes.
+ */
+fun Modifier.clayMoulded(
+    color: Color,
+    shape: Shape = RoundedCornerShape(32.dp),
+    elevation: Dp = 10.dp,
+    darkerFactor: Float = 0.20f,
+    isPressed: Boolean = false,
+    isInsetRecessed: Boolean = false
+): Modifier {
+    val darkerColor = if (color == Color.White || color == ClayColors.SurfaceMarshmallow) {
+        ClayColors.DefaultShadowTone
+    } else {
+        color.darker(darkerFactor)
+    }
+    val lighterColor = Color.White
+
+    return this
+        .shadow(
+            elevation = if (isPressed) maxOf(1.dp, elevation / 3) else elevation,
+            shape = shape,
+            clip = false,
+            ambientColor = darkerColor.copy(alpha = if (isInsetRecessed) 0.15f else 0.28f),
+            spotColor = darkerColor.copy(alpha = if (isInsetRecessed) 0.20f else 0.38f)
+        )
+        .background(color, shape = shape)
+        .clip(shape)
+        .drawWithContent {
+            // Draw inflated puffy clay lighting before content
+            val w = size.width
+            val h = size.height
+            val maxDimension = max(w, h)
+
+            if (!isInsetRecessed) {
+                // Base puffy gradient from slight light at top-left to subtle body
+                drawRect(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            color.lighter(0.12f),
+                            color,
+                            color.darker(0.08f)
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(w, h)
+                    )
+                )
+
+                // 1. Inset Shadow: Light top-left shine (inflates the soft clay surface)
+                drawRect(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            lighterColor.copy(alpha = if (isPressed) 0.45f else 0.72f),
+                            lighterColor.copy(alpha = if (isPressed) 0.15f else 0.25f),
+                            Color.Transparent
+                        ),
+                        center = Offset(w * 0.10f, h * 0.10f),
+                        radius = maxDimension * 0.85f
+                    )
+                )
+
+                // Directional top-left soft rim sheen
+                drawRect(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            lighterColor.copy(alpha = if (isPressed) 0.30f else 0.55f),
+                            Color.Transparent
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(w * 0.35f, h * 0.35f)
+                    )
+                )
+
+                // 2. Inset Shadow: 20% darker shade at bottom-right (gives moulded clay depth)
+                drawRect(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            darkerColor.copy(alpha = if (isPressed) 0.55f else 0.42f),
+                            darkerColor.copy(alpha = if (isPressed) 0.25f else 0.18f),
+                            Color.Transparent
+                        ),
+                        center = Offset(w * 0.92f, h * 0.92f),
+                        radius = maxDimension * 0.80f
+                    )
+                )
+
+                // Directional bottom-right soft shadow
+                drawRect(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            darkerColor.copy(alpha = if (isPressed) 0.50f else 0.38f)
+                        ),
+                        start = Offset(w * 0.65f, h * 0.65f),
+                        end = Offset(w, h)
+                    )
+                )
+            } else {
+                // Inset / Recessed clay (like a carved tray or text input)
+                drawRect(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            color.darker(0.06f),
+                            color,
+                            color.lighter(0.08f)
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(w, h)
+                    )
+                )
+
+                // Top-left cast shadow (carved inside)
+                drawRect(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            darkerColor.copy(alpha = 0.42f),
+                            Color.Transparent
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(w * 0.30f, h * 0.30f)
+                    )
+                )
+
+                // Bottom-right rim reflection
+                drawRect(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            lighterColor.copy(alpha = 0.60f)
+                        ),
+                        start = Offset(w * 0.70f, h * 0.70f),
+                        end = Offset(w, h)
+                    )
+                )
+            }
+
+            // Draw children content over the clay surface
+            drawContent()
+        }
+}
 
 @Composable
 fun ClayCard(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(28.dp),
+    shape: Shape = RoundedCornerShape(32.dp),
     surfaceColor: Color = ClayColors.SurfaceMarshmallow,
-    elevation: Dp = 8.dp,
-    borderWidth: Dp = 1.5.dp,
+    elevation: Dp = 10.dp,
+    borderWidth: Dp = 0.dp, // Maintained for parameter compatibility; wire borders omitted by design
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(
-        modifier = modifier
-            .shadow(
-                elevation = elevation,
-                shape = shape,
-                clip = false,
-                ambientColor = ClayColors.ShadowAmbient,
-                spotColor = ClayColors.ShadowSpot
-            )
-            .background(surfaceColor, shape = shape)
-            .border(
-                width = borderWidth,
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.9f),
-                        ClayColors.ShadowBevel.copy(alpha = 0.35f)
-                    ),
-                    start = Offset.Zero,
-                    end = Offset.Infinite
-                ),
-                shape = shape
-            )
-            .clip(shape),
+        modifier = modifier.clayMoulded(
+            color = surfaceColor,
+            shape = shape,
+            elevation = elevation
+        ),
         content = content
     )
 }
@@ -90,8 +219,8 @@ fun ClayButton(
     modifier: Modifier = Modifier,
     containerColor: Color = ClayColors.ClayTerracotta,
     contentColor: Color = Color.White,
-    shape: Shape = RoundedCornerShape(24.dp),
-    elevation: Dp = 8.dp,
+    shape: Shape = RoundedCornerShape(28.dp),
+    elevation: Dp = 10.dp,
     enabled: Boolean = true,
     content: @Composable RowScope.() -> Unit
 ) {
@@ -99,7 +228,7 @@ fun ClayButton(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue = if (isPressed && enabled) 0.93f else 1f,
+        targetValue = if (isPressed && enabled) 0.94f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow
@@ -118,34 +247,17 @@ fun ClayButton(
 
     Row(
         modifier = modifier
-            .defaultMinSize(minHeight = 48.dp)
+            .defaultMinSize(minHeight = 52.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
-            .shadow(
-                elevation = if (enabled) currentElevation else 1.dp,
-                shape = shape,
-                ambientColor = if (enabled) containerColor.copy(alpha = 0.35f) else ClayColors.ShadowAmbient,
-                spotColor = if (enabled) containerColor.copy(alpha = 0.4f) else ClayColors.ShadowSpot
-            )
-            .background(
+            .clayMoulded(
                 color = if (enabled) containerColor else ClayColors.SurfaceDimmed,
-                shape = shape
+                shape = shape,
+                elevation = if (enabled) currentElevation else 1.dp,
+                isPressed = isPressed
             )
-            .border(
-                width = 1.5.dp,
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.65f),
-                        Color.Black.copy(alpha = 0.15f)
-                    ),
-                    start = Offset.Zero,
-                    end = Offset.Infinite
-                ),
-                shape = shape
-            )
-            .clip(shape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -153,7 +265,7 @@ fun ClayButton(
                 role = Role.Button,
                 onClick = onClick
             )
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = 22.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
         content = content
@@ -170,7 +282,7 @@ fun ClayIconButton(
     iconTint: Color = ClayColors.TextPrimary,
     size: Dp = 48.dp,
     shape: Shape = CircleShape,
-    elevation: Dp = 6.dp
+    elevation: Dp = 8.dp
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -185,7 +297,7 @@ fun ClayIconButton(
     )
 
     val currentElevation by animateDpAsState(
-        targetValue = if (isPressed) 1.dp else elevation,
+        targetValue = if (isPressed) 2.dp else elevation,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow
@@ -200,26 +312,12 @@ fun ClayIconButton(
                 scaleX = scale
                 scaleY = scale
             }
-            .shadow(
-                elevation = currentElevation,
+            .clayMoulded(
+                color = containerColor,
                 shape = shape,
-                ambientColor = ClayColors.ShadowAmbient,
-                spotColor = ClayColors.ShadowSpot
+                elevation = currentElevation,
+                isPressed = isPressed
             )
-            .background(containerColor, shape = shape)
-            .border(
-                width = 1.5.dp,
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.85f),
-                        ClayColors.ShadowBevel.copy(alpha = 0.35f)
-                    ),
-                    start = Offset.Zero,
-                    end = Offset.Infinite
-                ),
-                shape = shape
-            )
-            .clip(shape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -248,7 +346,8 @@ fun ClayPill(
     unselectedColor: Color = ClayColors.SurfaceMarshmallow,
     badgeCount: Int? = null
 ) {
-    val shape = RoundedCornerShape(22.dp)
+    // Fully rounded pill shape
+    val shape = CircleShape
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
@@ -262,7 +361,7 @@ fun ClayPill(
     )
 
     val elevation by animateDpAsState(
-        targetValue = if (isPressed) 2.dp else if (isSelected) 6.dp else 3.dp,
+        targetValue = if (isPressed) 2.dp else if (isSelected) 8.dp else 4.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow
@@ -283,64 +382,48 @@ fun ClayPill(
 
     Row(
         modifier = modifier
-            .defaultMinSize(minHeight = 40.dp)
+            .defaultMinSize(minHeight = 44.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
-            .shadow(
-                elevation = elevation,
-                shape = shape,
-                ambientColor = if (isSelected) selectedColor.copy(alpha = 0.3f) else ClayColors.ShadowAmbient,
-                spotColor = if (isSelected) selectedColor.copy(alpha = 0.35f) else ClayColors.ShadowSpot
-            )
-            .background(
+            .clayMoulded(
                 color = animatedBg,
-                shape = shape
+                shape = shape,
+                elevation = elevation,
+                isPressed = isPressed
             )
-            .border(
-                width = 1.5.dp,
-                brush = Brush.linearGradient(
-                    colors = if (isSelected) {
-                        listOf(Color.White.copy(alpha = 0.7f), Color.Black.copy(alpha = 0.15f))
-                    } else {
-                        listOf(Color.White.copy(alpha = 0.9f), ClayColors.ShadowBevel.copy(alpha = 0.3f))
-                    }
-                ),
-                shape = shape
-            )
-            .clip(shape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = 14.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (iconEmoji != null) {
-            Text(text = iconEmoji, fontSize = 14.sp)
+            Text(text = iconEmoji, fontSize = 15.sp)
         }
         Text(
             text = text,
             color = animatedTextColor,
             fontSize = 13.sp,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
         )
         if (badgeCount != null && badgeCount > 0) {
             Box(
                 modifier = Modifier
-                    .size(18.dp)
+                    .size(20.dp)
                     .background(
-                        color = if (isSelected) Color.White.copy(alpha = 0.3f) else ClayColors.SurfaceDimmed,
+                        color = if (isSelected) Color.White.copy(alpha = 0.35f) else ClayColors.SurfaceDimmed,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "$badgeCount",
-                    fontSize = 10.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (isSelected) Color.White else ClayColors.TextSecondary
                 )
@@ -359,40 +442,27 @@ fun ClayTextField(
     trailingIcon: @Composable (() -> Unit)? = null,
     singleLine: Boolean = true,
     maxLines: Int = 1,
-    minHeight: Dp = 50.dp
+    minHeight: Dp = 54.dp
 ) {
-    val shape = RoundedCornerShape(22.dp)
+    // Very large radius on input fields
+    val shape = RoundedCornerShape(26.dp)
 
     Box(
         modifier = modifier
             .defaultMinSize(minHeight = minHeight)
-            .shadow(
-                elevation = 3.dp,
+            .clayMoulded(
+                color = ClayColors.SurfaceSoftClay,
                 shape = shape,
-                ambientColor = ClayColors.ShadowAmbient,
-                spotColor = ClayColors.ShadowSpot
+                elevation = 3.dp,
+                isInsetRecessed = true
             )
-            .background(ClayColors.SurfaceSoftClay, shape = shape)
-            .border(
-                width = 1.5.dp,
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        ClayColors.ShadowBevel.copy(alpha = 0.5f),
-                        Color.White.copy(alpha = 0.8f)
-                    ),
-                    start = Offset.Zero,
-                    end = Offset.Infinite
-                ),
-                shape = shape
-            )
-            .clip(shape)
-            .padding(horizontal = 14.dp, vertical = 10.dp),
+            .padding(horizontal = 18.dp, vertical = 14.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (leadingIcon != null) {
                 leadingIcon()
@@ -417,7 +487,7 @@ fun ClayTextField(
                     ),
                     singleLine = singleLine,
                     maxLines = maxLines,
-                    cursorBrush = SolidColor(ClayColors.ClayTerracotta)
+                    cursorBrush = SolidColor(ClayColors.PrimaryAccent)
                 )
             }
 
@@ -436,33 +506,20 @@ fun ClayBadge(
     modifier: Modifier = Modifier,
     iconEmoji: String? = null
 ) {
-    val shape = RoundedCornerShape(14.dp)
+    val shape = CircleShape
     Row(
         modifier = modifier
-            .shadow(
-                elevation = 2.dp,
+            .clayMoulded(
+                color = backgroundColor,
                 shape = shape,
-                ambientColor = backgroundColor.copy(alpha = 0.25f),
-                spotColor = backgroundColor.copy(alpha = 0.3f)
+                elevation = 4.dp
             )
-            .background(backgroundColor, shape = shape)
-            .border(
-                width = 1.dp,
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.6f),
-                        Color.Black.copy(alpha = 0.1f)
-                    )
-                ),
-                shape = shape
-            )
-            .clip(shape)
-            .padding(horizontal = 9.dp, vertical = 5.dp),
+            .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         if (iconEmoji != null) {
-            Text(text = iconEmoji, fontSize = 11.sp)
+            Text(text = iconEmoji, fontSize = 12.sp)
         }
         Text(
             text = text,
@@ -470,5 +527,64 @@ fun ClayBadge(
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold
         )
+    }
+}
+
+/**
+ * A cute 3D-looking moulded soft clay sphere/illustration.
+ * Matches the surfaces with soft dual lighting and contact drop shadow.
+ */
+@Composable
+fun Clay3DBlob(
+    color: Color,
+    modifier: Modifier = Modifier,
+    size: Dp = 48.dp
+) {
+    val darker = color.darker(0.25f)
+    Box(
+        modifier = modifier.size(size),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.size(size)) {
+            val radius = this.size.minDimension / 2f
+            val center = Offset(this.size.width / 2f, this.size.height / 2f)
+
+            // Contact soft shadow
+            drawCircle(
+                color = darker.copy(alpha = 0.35f),
+                radius = radius * 0.95f,
+                center = center + Offset(0f, radius * 0.15f)
+            )
+
+            // Base sphere body
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        color.lighter(0.35f),
+                        color,
+                        darker
+                    ),
+                    center = center - Offset(radius * 0.35f, radius * 0.35f),
+                    radius = radius * 1.3f
+                ),
+                radius = radius * 0.90f,
+                center = center
+            )
+
+            // Top-left soft specular clay shine
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.85f),
+                        Color.White.copy(alpha = 0.20f),
+                        Color.Transparent
+                    ),
+                    center = center - Offset(radius * 0.40f, radius * 0.40f),
+                    radius = radius * 0.50f
+                ),
+                radius = radius * 0.45f,
+                center = center - Offset(radius * 0.40f, radius * 0.40f)
+            )
+        }
     }
 }

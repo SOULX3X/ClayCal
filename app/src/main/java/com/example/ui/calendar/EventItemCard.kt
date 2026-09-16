@@ -6,8 +6,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -24,11 +22,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -38,9 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
@@ -54,7 +49,7 @@ import com.example.model.Category
 import com.example.ui.clay.ClayBadge
 import com.example.ui.clay.ClayCard
 import com.example.ui.clay.ClayColors
-import com.example.ui.clay.clayBounceClickable
+import com.example.ui.clay.clayMoulded
 
 @Composable
 fun EventItemCard(
@@ -66,7 +61,7 @@ fun EventItemCard(
     modifier: Modifier = Modifier
 ) {
     val category = Category.fromName(event.category)
-    val shape = RoundedCornerShape(26.dp)
+    val shape = RoundedCornerShape(32.dp)
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -87,7 +82,7 @@ fun EventItemCard(
     )
 
     val elevation by animateDpAsState(
-        targetValue = if (isPressed) 2.dp else if (event.isCompleted) 3.dp else 7.dp,
+        targetValue = if (isPressed) 2.dp else if (event.isCompleted) 3.dp else 8.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow
@@ -115,7 +110,7 @@ fun EventItemCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(18.dp),
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
@@ -168,7 +163,7 @@ fun EventItemCard(
                             modifier = Modifier.size(28.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Edit,
+                                imageVector = Icons.Rounded.Edit,
                                 contentDescription = "Edit event",
                                 tint = ClayColors.TextTertiary,
                                 modifier = Modifier.size(16.dp)
@@ -179,7 +174,7 @@ fun EventItemCard(
                             modifier = Modifier.size(28.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Delete,
+                                imageVector = Icons.Rounded.Delete,
                                 contentDescription = "Delete event",
                                 tint = ClayColors.ClayTerracotta.copy(alpha = 0.8f),
                                 modifier = Modifier.size(16.dp)
@@ -225,7 +220,7 @@ fun EventItemCard(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Schedule,
+                            imageVector = Icons.Rounded.Schedule,
                             contentDescription = "Time",
                             tint = category.clayColor,
                             modifier = Modifier.size(14.dp)
@@ -246,7 +241,7 @@ fun EventItemCard(
                             modifier = Modifier.weight(1f, fill = false)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.LocationOn,
+                                imageVector = Icons.Rounded.LocationOn,
                                 contentDescription = "Location",
                                 tint = ClayColors.TextTertiary,
                                 modifier = Modifier.size(14.dp)
@@ -273,12 +268,12 @@ fun ClayCheckbox(
     accentColor: Color,
     modifier: Modifier = Modifier
 ) {
-    val checkboxShape = RoundedCornerShape(10.dp)
+    val checkboxShape = CircleShape
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.82f else if (checked) 1.04f else 1f,
+        targetValue = if (isPressed) 0.82f else if (checked) 1.06f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow
@@ -302,7 +297,7 @@ fun ClayCheckbox(
     )
 
     val animatedElevation by animateDpAsState(
-        targetValue = if (isPressed) 1.dp else if (checked) 2.dp else 4.dp,
+        targetValue = if (isPressed) 1.dp else if (checked) 3.dp else 5.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow
@@ -312,33 +307,17 @@ fun ClayCheckbox(
 
     Box(
         modifier = modifier
-            .size(28.dp)
+            .size(30.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
-            .shadow(
-                elevation = animatedElevation,
-                shape = checkboxShape,
-                ambientColor = if (checked) accentColor.copy(alpha = 0.35f) else ClayColors.ShadowAmbient,
-                spotColor = if (checked) accentColor.copy(alpha = 0.4f) else ClayColors.ShadowSpot
-            )
-            .background(
+            .clayMoulded(
                 color = animatedBg,
-                shape = checkboxShape
+                shape = checkboxShape,
+                elevation = animatedElevation,
+                isPressed = isPressed
             )
-            .border(
-                width = 1.5.dp,
-                brush = Brush.linearGradient(
-                    colors = if (checked) {
-                        listOf(Color.White.copy(alpha = 0.7f), Color.Black.copy(alpha = 0.15f))
-                    } else {
-                        listOf(Color.White.copy(alpha = 0.9f), ClayColors.ShadowBevel.copy(alpha = 0.35f))
-                    }
-                ),
-                shape = checkboxShape
-            )
-            .clip(checkboxShape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null
@@ -348,7 +327,7 @@ fun ClayCheckbox(
     ) {
         if (checkmarkScale > 0.05f) {
             Icon(
-                imageVector = Icons.Default.Check,
+                imageVector = Icons.Rounded.Check,
                 contentDescription = "Completed",
                 tint = Color.White,
                 modifier = Modifier

@@ -21,8 +21,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,8 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.testTag
@@ -47,6 +45,7 @@ import com.example.model.CalendarEvent
 import com.example.model.Category
 import com.example.model.SimpleDate
 import com.example.ui.clay.ClayColors
+import com.example.ui.clay.clayMoulded
 
 @Composable
 fun SearchScreen(
@@ -96,25 +95,16 @@ fun SearchScreen(
         )
 
         // Clay Inset Search Box
+        val searchBoxShape = RoundedCornerShape(28.dp)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(
-                    elevation = 2.dp,
-                    shape = RoundedCornerShape(20.dp),
-                    ambientColor = ClayColors.ShadowAmbient,
-                    spotColor = ClayColors.ShadowSpot
+                .clayMoulded(
+                    color = ClayColors.SurfaceDimmed.copy(alpha = 0.55f),
+                    shape = searchBoxShape,
+                    elevation = 3.dp
                 )
-                .background(
-                    color = ClayColors.SurfaceDimmed.copy(alpha = 0.65f),
-                    shape = RoundedCornerShape(20.dp)
-                )
-                .border(
-                    width = 1.dp,
-                    color = ClayColors.ShadowBevel.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(20.dp)
-                )
-                .padding(horizontal = 16.dp, vertical = 13.dp),
+                .padding(horizontal = 18.dp, vertical = 14.dp),
             contentAlignment = Alignment.CenterStart
         ) {
             Row(
@@ -122,7 +112,7 @@ fun SearchScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.Search,
+                    imageVector = Icons.Rounded.Search,
                     contentDescription = "Search",
                     tint = ClayColors.TextSecondary,
                     modifier = Modifier.size(20.dp)
@@ -157,14 +147,14 @@ fun SearchScreen(
                 if (query.isNotEmpty()) {
                     Box(
                         modifier = Modifier
-                            .size(24.dp)
+                            .size(26.dp)
                             .clip(CircleShape)
                             .background(ClayColors.TextSecondary.copy(alpha = 0.18f))
                             .clickable { onQueryChange("") },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Clear,
+                            imageVector = Icons.Rounded.Clear,
                             contentDescription = "Clear",
                             tint = ClayColors.TextSecondary,
                             modifier = Modifier.size(16.dp)
@@ -211,13 +201,13 @@ fun SearchScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(20.dp))
                             .clickable { onQueryChange(item) }
-                            .padding(vertical = 8.dp, horizontal = 4.dp),
+                            .padding(vertical = 10.dp, horizontal = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Search,
+                            imageVector = Icons.Rounded.Search,
                             contentDescription = null,
                             tint = ClayColors.TextTertiary,
                             modifier = Modifier.size(18.dp)
@@ -258,42 +248,28 @@ fun SearchScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(searchResults, key = { it.id }) { event ->
                         val cat = Category.fromName(event.category)
+                        val itemShape = RoundedCornerShape(28.dp)
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .shadow(
-                                    elevation = 4.dp,
-                                    shape = RoundedCornerShape(18.dp),
-                                    ambientColor = ClayColors.ShadowAmbient,
-                                    spotColor = ClayColors.ShadowSpot
-                                )
-                                .background(
+                                .clayMoulded(
                                     color = ClayColors.SurfaceMarshmallow,
-                                    shape = RoundedCornerShape(18.dp)
+                                    shape = itemShape,
+                                    elevation = 4.dp
                                 )
-                                .border(
-                                    width = 1.2.dp,
-                                    brush = Brush.verticalGradient(
-                                        colors = listOf(
-                                            Color.White.copy(alpha = 0.9f),
-                                            ClayColors.ShadowBevel.copy(alpha = 0.35f)
-                                        )
-                                    ),
-                                    shape = RoundedCornerShape(18.dp)
-                                )
-                                .clip(RoundedCornerShape(18.dp))
+                                .clip(itemShape)
                                 .clickable { onEventClick(event) }
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(10.dp)
-                                    .background(cat.clayColor, CircleShape)
+                                    .size(12.dp)
+                                    .clayMoulded(cat.clayColor, CircleShape, elevation = 1.dp)
                             )
                             Spacer(modifier = Modifier.width(14.dp))
                             Column(modifier = Modifier.weight(1f)) {

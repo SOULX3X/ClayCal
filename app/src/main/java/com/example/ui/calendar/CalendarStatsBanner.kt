@@ -1,18 +1,13 @@
 package com.example.ui.calendar
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -22,11 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -35,6 +25,7 @@ import com.example.model.SimpleDate
 import com.example.model.SimpleTime
 import com.example.ui.clay.ClayCard
 import com.example.ui.clay.ClayColors
+import com.example.ui.clay.clayMoulded
 
 @Composable
 fun CalendarStatsBanner(
@@ -60,14 +51,14 @@ fun CalendarStatsBanner(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(32.dp),
         surfaceColor = ClayColors.SurfaceMarshmallow,
-        elevation = 6.dp
+        elevation = 7.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(18.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -122,23 +113,14 @@ fun CalendarStatsBanner(
                 }
             }
 
-            // Circular progress with Clay ring
+            // Circular progress with puffy clay ring
             Box(
                 modifier = Modifier
-                    .size(54.dp)
-                    .shadow(
-                        elevation = 3.dp,
+                    .size(56.dp)
+                    .clayMoulded(
+                        color = ClayColors.SurfaceSoftClay,
                         shape = CircleShape,
-                        ambientColor = ClayColors.ShadowAmbient,
-                        spotColor = ClayColors.ShadowSpot
-                    )
-                    .background(ClayColors.SurfaceSoftClay, shape = CircleShape)
-                    .border(
-                        width = 1.dp,
-                        brush = Brush.linearGradient(
-                            colors = listOf(Color.White.copy(alpha = 0.9f), ClayColors.ShadowBevel.copy(alpha = 0.3f))
-                        ),
-                        shape = CircleShape
+                        elevation = 4.dp
                     ),
                 contentAlignment = Alignment.Center
             ) {
