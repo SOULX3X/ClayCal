@@ -1,5 +1,6 @@
 package com.example.ui.calendar
 
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
@@ -14,6 +15,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +39,7 @@ import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Storage
@@ -68,9 +71,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.example.data.AppThemeMode
 import com.example.ui.clay.ClayButton
+import com.example.ui.clay.ClayCard
 import com.example.ui.clay.ClayColors
+import com.example.ui.clay.ClayPill
+import com.example.ui.clay.clayBounceClickable
 import com.example.util.ApkInstaller
 
 private enum class SettingsSubScreen {
@@ -86,8 +93,13 @@ fun SettingsScreen(
     currentThemeMode: AppThemeMode,
     activeAccent: String,
     eventsCount: Int,
+    notificationsEnabled: Boolean = true,
+    defaultReminderMinutes: Int = 15,
     onThemeModeChange: (AppThemeMode) -> Unit,
     onAccentColorChange: (String) -> Unit,
+    onNotificationsEnabledChange: (Boolean) -> Unit = {},
+    onDefaultReminderMinutesChange: (Int) -> Unit = {},
+    onSendTestNotification: () -> Unit = {},
     onExportData: () -> Unit,
     onImportData: () -> Unit,
     onClearAllData: () -> Unit,
@@ -161,6 +173,11 @@ fun SettingsScreen(
 
         SettingsSubScreen.NOTIFICATIONS -> {
             NotificationsSubScreen(
+                notificationsEnabled = notificationsEnabled,
+                defaultReminderMinutes = defaultReminderMinutes,
+                onNotificationsEnabledChange = onNotificationsEnabledChange,
+                onDefaultReminderMinutesChange = onDefaultReminderMinutesChange,
+                onSendTestNotification = onSendTestNotification,
                 onBack = { activeSubScreen = SettingsSubScreen.MAIN },
                 modifier = modifier
             )
@@ -456,53 +473,146 @@ private fun AppearanceSubScreen(
             )
         }
 
+        // Bright & Vivid Themes Section
         Text(
-            text = "Accent color",
+            text = "Bright & Vivid Colors",
             fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = ClayColors.TextSecondary,
-            modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+            fontWeight = FontWeight.Bold,
+            color = ClayColors.TextPrimary,
+            modifier = Modifier.padding(start = 4.dp, top = 6.dp)
         )
 
-        val accentOptions = listOf(
-            "Sage" to ClayColors.ClaySage,
-            "Terracotta" to ClayColors.ClayTerracotta,
-            "Peach" to ClayColors.ClayPeach,
-            "Blue" to ClayColors.ClaySoftBlue,
-            "Lavender" to ClayColors.ClayLavender,
-            "Mint" to ClayColors.ClayMint
+        val brightOptions = listOf(
+            Triple("Sunshine", ClayColors.BrightSunshine, "Warm glow"),
+            Triple("Coral", ClayColors.BrightCoral, "Electric coral"),
+            Triple("Rose", ClayColors.BrightRose, "Candy pink"),
+            Triple("Violet", ClayColors.BrightViolet, "Ultraviolet"),
+            Triple("Aqua", ClayColors.BrightAqua, "Electric cyan"),
+            Triple("Emerald", ClayColors.BrightEmerald, "Spring green"),
+            Triple("Tangerine", ClayColors.BrightTangerine, "Sunny orange"),
+            Triple("Berry", ClayColors.BrightBerry, "Vivid magenta")
         )
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            accentOptions.forEach { (name, color) ->
+            brightOptions.forEach { (name, color, _) ->
                 val isSelected = activeAccent.equals(name, ignoreCase = true)
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .shadow(
-                            elevation = if (isSelected) 4.dp else 1.dp,
-                            shape = CircleShape
-                        )
-                        .background(color, CircleShape)
-                        .border(
-                            width = if (isSelected) 3.dp else 1.dp,
-                            color = if (isSelected) Color.White else Color.White.copy(alpha = 0.5f),
-                            shape = CircleShape
-                        )
-                        .clickable { onAccentColorChange(name) },
-                    contentAlignment = Alignment.Center
+                ClayThemeColorBubble(
+                    name = name,
+                    color = color,
+                    isSelected = isSelected,
+                    onClick = { onAccentColorChange(name) }
+                )
+            }
+        }
+
+        // Soft Pastel Themes Section
+        Text(
+            text = "Soft Pastel Colors",
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = ClayColors.TextPrimary,
+            modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+        )
+
+        val pastelOptions = listOf(
+            Triple("Sage", ClayColors.PastelSage, "Pistachio"),
+            Triple("Terracotta", ClayColors.PastelTerracotta, "Warm earth"),
+            Triple("Peach", ClayColors.PastelPeach, "Soft apricot"),
+            Triple("Lavender", ClayColors.PastelLavender, "Dreamy lilac"),
+            Triple("Blue", ClayColors.PastelSky, "Pastel sky"),
+            Triple("Mint", ClayColors.PastelMint, "Fresh mint")
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            pastelOptions.forEach { (name, color, _) ->
+                val isSelected = activeAccent.equals(name, ignoreCase = true)
+                ClayThemeColorBubble(
+                    name = name,
+                    color = color,
+                    isSelected = isSelected,
+                    onClick = { onAccentColorChange(name) }
+                )
+            }
+        }
+
+        // Live Claymorphic Palette Preview
+        val previewShape = RoundedCornerShape(22.dp)
+        ClayCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
+            shape = previewShape,
+            surfaceColor = ClayColors.SurfaceSoftClay,
+            elevation = 4.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    if (isSelected) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "Selected",
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+                    Box(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .shadow(2.dp, CircleShape)
+                            .background(ClayColors.PrimaryAccent, CircleShape)
+                    )
+                    Text(
+                        text = "Active Theme: $activeAccent Clay",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ClayColors.TextPrimary
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Sample Clay Pill
+                    val pillShape = RoundedCornerShape(16.dp)
+                    Box(
+                        modifier = Modifier
+                            .shadow(2.dp, pillShape)
+                            .background(ClayColors.PrimaryAccent.copy(alpha = 0.18f), pillShape)
+                            .border(1.dp, ClayColors.PrimaryAccent.copy(alpha = 0.45f), pillShape)
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = "Sample Event",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = ClayColors.PrimaryAccent
+                        )
+                    }
+
+                    // Sample Action Button
+                    ClayButton(
+                        onClick = { },
+                        containerColor = ClayColors.PrimaryAccent,
+                        shape = RoundedCornerShape(18.dp),
+                        elevation = 4.dp,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Pastel Clay Style",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -512,18 +622,100 @@ private fun AppearanceSubScreen(
 }
 
 @Composable
+private fun ClayThemeColorBubble(
+    name: String,
+    color: Color,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val bubbleShape = CircleShape
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier
+            .clayBounceClickable(shape = bubbleShape, pressedScale = 0.88f) {
+                onClick()
+            }
+            .padding(vertical = 4.dp)
+            .testTag("theme_color_$name")
+    ) {
+        Box(
+            modifier = Modifier
+                .size(46.dp)
+                .shadow(
+                    elevation = if (isSelected) 6.dp else 2.dp,
+                    shape = bubbleShape,
+                    ambientColor = color.copy(alpha = 0.45f),
+                    spotColor = color.copy(alpha = 0.55f)
+                )
+                .background(color, shape = bubbleShape)
+                .border(
+                    width = if (isSelected) 3.dp else 1.5.dp,
+                    color = if (isSelected) Color.White else Color.White.copy(alpha = 0.55f),
+                    shape = bubbleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Selected",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+
+        Text(
+            text = name,
+            fontSize = 11.sp,
+            color = if (isSelected) ClayColors.TextPrimary else ClayColors.TextTertiary,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+        )
+    }
+}
+
+@Composable
 private fun NotificationsSubScreen(
+    notificationsEnabled: Boolean,
+    defaultReminderMinutes: Int,
+    onNotificationsEnabledChange: (Boolean) -> Unit,
+    onDefaultReminderMinutesChange: (Int) -> Unit,
+    onSendTestNotification: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var eventReminders by remember { mutableStateOf(true) }
-    var allDayReminders by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+    var hasPostPermission by remember {
+        mutableStateOf(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            } else {
+                true
+            }
+        )
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasPostPermission = granted
+        if (granted) {
+            Toast.makeText(context, "Notification permission granted!", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "Notification permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(ClayColors.Background)
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -536,14 +728,67 @@ private fun NotificationsSubScreen(
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Notifications",
-                fontSize = 24.sp,
+                text = "Notifications & Reminders",
+                fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = ClayColors.TextPrimary
             )
         }
 
-        // Screen 19 layout
+        // System Permission status banner (if Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ClayCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                surfaceColor = if (hasPostPermission) ClayColors.SurfaceMarshmallow else ClayColors.SurfaceSoftClay,
+                elevation = 3.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "System Permission",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ClayColors.TextPrimary
+                        )
+                        Text(
+                            text = if (hasPostPermission) "Notifications are allowed on this device" else "Android permission needed to show alerts",
+                            fontSize = 12.sp,
+                            color = if (hasPostPermission) ClayColors.ClayMint else ClayColors.ClayTerracotta
+                        )
+                    }
+
+                    if (!hasPostPermission) {
+                        ClayButton(
+                            onClick = {
+                                permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                            },
+                            containerColor = ClayColors.ClayTerracotta,
+                            contentColor = Color.White,
+                            elevation = 3.dp,
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Text("Allow", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                    } else {
+                        ClayPill(
+                            text = "Allowed ✓",
+                            isSelected = true,
+                            onClick = {},
+                            selectedColor = ClayColors.ClayMint
+                        )
+                    }
+                }
+            }
+        }
+
+        // Master toggle & settings card
         SettingsGroupCard {
             Row(
                 modifier = Modifier
@@ -552,49 +797,159 @@ private fun NotificationsSubScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Event reminders",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = ClayColors.TextPrimary
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Event Reminders",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ClayColors.TextPrimary
+                    )
+                    Text(
+                        text = "Schedule alerts ahead of planned events",
+                        fontSize = 12.sp,
+                        color = ClayColors.TextSecondary
+                    )
+                }
                 Switch(
-                    checked = eventReminders,
-                    onCheckedChange = { eventReminders = it },
+                    checked = notificationsEnabled,
+                    onCheckedChange = { onNotificationsEnabledChange(it) },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color.White,
                         checkedTrackColor = ClayColors.PrimaryAccent
                     )
                 )
             }
+
             SettingsDivider()
-            SettingsRow(
-                icon = Icons.Default.Notifications,
-                title = "Default reminder time",
-                value = "10 min before",
-                onClick = {}
-            )
-            SettingsDivider()
-            Row(
+
+            // Default reminder timing selection
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    text = "All day reminders",
-                    fontSize = 15.sp,
+                    text = "Default Reminder Time",
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = ClayColors.TextPrimary
                 )
-                Switch(
-                    checked = allDayReminders,
-                    onCheckedChange = { allDayReminders = it },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = ClayColors.PrimaryAccent
+
+                val reminderPresets = listOf(
+                    Pair("At start", 0),
+                    Pair("5m before", 5),
+                    Pair("15m before", 15),
+                    Pair("30m before", 30),
+                    Pair("1h before", 60),
+                    Pair("1d before", 1440)
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    reminderPresets.forEach { (label, mins) ->
+                        val isSelected = defaultReminderMinutes == mins
+                        ClayPill(
+                            text = label,
+                            isSelected = isSelected,
+                            onClick = { onDefaultReminderMinutesChange(mins) },
+                            selectedColor = ClayColors.PrimaryAccent,
+                            unselectedColor = ClayColors.SurfaceSoftClay
+                        )
+                    }
+                }
+            }
+        }
+
+        // Instant Notification Tester Card
+        ClayCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            surfaceColor = ClayColors.SurfaceMarshmallow,
+            elevation = 4.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.NotificationsActive,
+                        contentDescription = null,
+                        tint = ClayColors.PrimaryAccent,
+                        modifier = Modifier.size(24.dp)
                     )
+                    Column {
+                        Text(
+                            text = "Test Reminder Notification",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ClayColors.TextPrimary
+                        )
+                        Text(
+                            text = "Send an immediate clay notification to verify alert sound, priority banner, and quick actions",
+                            fontSize = 12.sp,
+                            color = ClayColors.TextSecondary
+                        )
+                    }
+                }
+
+                ClayButton(
+                    onClick = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasPostPermission) {
+                            permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            onSendTestNotification()
+                        }
+                    },
+                    containerColor = ClayColors.PrimaryAccent,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = 4.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "Send Test Alert Now", fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        // Reliability Note
+        ClayCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            surfaceColor = ClayColors.SurfaceSoftClay,
+            elevation = 1.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = "🔔 High-Precision Alarms",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = ClayColors.TextPrimary
+                )
+                Text(
+                    text = "Event reminders use Android AlarmManager to trigger precisely even if ClayCal is closed. Tapping the notification opens the event details, with 'Mark Done' and 'Snooze 10m' available right in the notification shade.",
+                    fontSize = 12.sp,
+                    color = ClayColors.TextSecondary,
+                    lineHeight = 16.sp
                 )
             }
         }
@@ -789,13 +1144,13 @@ private fun SettingsGroupCard(
             .fillMaxWidth()
             .shadow(
                 elevation = 4.dp,
-                shape = RoundedCornerShape(22.dp),
+                shape = RoundedCornerShape(26.dp),
                 ambientColor = ClayColors.ShadowAmbient,
                 spotColor = ClayColors.ShadowSpot
             )
             .background(
                 color = ClayColors.SurfaceMarshmallow,
-                shape = RoundedCornerShape(22.dp)
+                shape = RoundedCornerShape(26.dp)
             )
             .border(
                 width = 1.2.dp,
@@ -805,9 +1160,9 @@ private fun SettingsGroupCard(
                         ClayColors.ShadowBevel.copy(alpha = 0.35f)
                     )
                 ),
-                shape = RoundedCornerShape(22.dp)
+                shape = RoundedCornerShape(26.dp)
             )
-            .clip(RoundedCornerShape(22.dp))
+            .clip(RoundedCornerShape(26.dp))
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             content()

@@ -69,7 +69,7 @@ fun CalendarHeader(
             .padding(horizontal = 18.dp, vertical = if (isWideScreen) 6.dp else 10.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Top Row: "ClayCal" title and circular Green '+' button (Screen 7)
+        // Top Row: "ClayCal" title and "Today" button
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -82,73 +82,35 @@ fun CalendarHeader(
                 color = ClayColors.TextPrimary
             )
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            // Today badge jump button with bouncy spring
+            val todayShape = RoundedCornerShape(18.dp)
+            Box(
+                modifier = Modifier
+                    .shadow(
+                        elevation = 3.dp,
+                        shape = todayShape,
+                        ambientColor = ClayColors.ShadowAmbient,
+                        spotColor = ClayColors.ShadowSpot
+                    )
+                    .background(ClayColors.SurfaceMarshmallow, todayShape)
+                    .border(
+                        width = 1.dp,
+                        color = ClayColors.ShadowBevel.copy(alpha = 0.5f),
+                        shape = todayShape
+                    )
+                    .clayBounceClickable(shape = todayShape, pressedScale = 0.90f) {
+                        onJumpToToday()
+                    }
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
+                    .testTag("today_jump_badge"),
+                contentAlignment = Alignment.Center
             ) {
-                // Today badge jump button with bouncy spring
-                val todayShape = RoundedCornerShape(18.dp)
-                Box(
-                    modifier = Modifier
-                        .shadow(
-                            elevation = 3.dp,
-                            shape = todayShape,
-                            ambientColor = ClayColors.ShadowAmbient,
-                            spotColor = ClayColors.ShadowSpot
-                        )
-                        .background(ClayColors.SurfaceMarshmallow, todayShape)
-                        .border(
-                            width = 1.dp,
-                            color = ClayColors.ShadowBevel.copy(alpha = 0.5f),
-                            shape = todayShape
-                        )
-                        .clayBounceClickable(shape = todayShape, pressedScale = 0.90f) {
-                            onJumpToToday()
-                        }
-                        .padding(horizontal = 12.dp, vertical = 7.dp)
-                        .testTag("today_jump_badge"),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Today",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ClayColors.PrimaryAccent
-                    )
-                }
-
-                // Circular Green '+' Clay Button with spring bounce
-                val addBtnShape = CircleShape
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .shadow(
-                            elevation = 5.dp,
-                            shape = addBtnShape,
-                            ambientColor = ClayColors.PrimaryAccent.copy(alpha = 0.35f),
-                            spotColor = ClayColors.PrimaryAccent.copy(alpha = 0.4f)
-                        )
-                        .background(ClayColors.PrimaryAccent, addBtnShape)
-                        .border(
-                            width = 1.5.dp,
-                            brush = Brush.linearGradient(
-                                colors = listOf(Color.White.copy(alpha = 0.75f), Color.Transparent)
-                            ),
-                            shape = addBtnShape
-                        )
-                        .clayBounceClickable(shape = addBtnShape, pressedScale = 0.88f) {
-                            onAddNewEvent()
-                        }
-                        .testTag("header_add_event_button"),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add Event",
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                Text(
+                    text = "Today",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = ClayColors.PrimaryAccent
+                )
             }
         }
 

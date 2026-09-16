@@ -1,13 +1,21 @@
 package com.example
 
 import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -36,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,6 +58,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.data.AppThemeMode
@@ -74,9 +84,22 @@ import com.example.ui.clay.MainNavTab
 import com.example.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        const val EXTRA_OPEN_EVENT_ID = "extra_open_event_id"
+    }
+
+    private val pendingEventId = mutableStateOf<Long?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val incomingId = intent?.getLongExtra(EXTRA_OPEN_EVENT_ID, -1L) ?: -1L
+        if (incomingId > 0) {
+            pendingEventId.value = incomingId
+        }
+
         setContent {
             val viewModel: CalendarViewModel = viewModel()
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -89,9 +112,26 @@ class MainActivity : ComponentActivity() {
             ClayColors.isDark = isDark
             ClayColors.activeAccentName = uiState.activeAccent
 
+            val eventToOpen = pendingEventId.value
+            LaunchedEffect(eventToOpen) {
+                if (eventToOpen != null && eventToOpen > 0) {
+                    viewModel.openEventById(eventToOpen)
+                    pendingEventId.value = null
+                }
+            }
+
             MyApplicationTheme(darkTheme = isDark) {
                 CalendarApp(viewModel = viewModel)
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val incomingId = intent.getLongExtra(EXTRA_OPEN_EVENT_ID, -1L)
+        if (incomingId > 0) {
+            pendingEventId.value = incomingId
         }
     }
 }
@@ -104,6 +144,26 @@ fun CalendarApp(
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     var lastBackPressTime by remember { mutableLongStateOf(0L) }
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            viewModel.showSnackbar("Reminders require notification permission to alert you")
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
 
     // 1. If in Search tab and search query is not blank, back clears search
     BackHandler(enabled = uiState.mainTab == MainNavTab.SEARCH && uiState.searchQuery.isNotEmpty()) {
@@ -282,8 +342,13 @@ fun CalendarApp(
                             currentThemeMode = uiState.themeMode,
                             activeAccent = uiState.activeAccent,
                             eventsCount = uiState.allEvents.size,
+                            notificationsEnabled = uiState.notificationsEnabled,
+                            defaultReminderMinutes = uiState.defaultReminderMinutes,
                             onThemeModeChange = { viewModel.setThemeMode(it) },
                             onAccentColorChange = { viewModel.setAccentPalette(it) },
+                            onNotificationsEnabledChange = { viewModel.setNotificationsEnabled(it) },
+                            onDefaultReminderMinutesChange = { viewModel.setDefaultReminderMinutes(it) },
+                            onSendTestNotification = { viewModel.sendTestNotification() },
                             onExportData = { viewModel.exportEventsJson() },
                             onImportData = { viewModel.showSnackbar("File picker ready for backup restore") },
                             onClearAllData = { viewModel.deleteAllData() },
@@ -299,8 +364,9 @@ fun CalendarApp(
             EventDialog(
                 editingEvent = uiState.editingEvent,
                 initialDate = uiState.selectedDate,
+                defaultReminderMinutes = uiState.defaultReminderMinutes,
                 onDismiss = { viewModel.closeDialogs() },
-                onSave = { title, desc, cat, date, start, end, loc, priority, existingId ->
+                onSave = { title, desc, cat, date, start, end, loc, priority, reminderMins, existingId ->
                     viewModel.saveEvent(
                         title = title,
                         description = desc,
@@ -310,6 +376,7 @@ fun CalendarApp(
                         endTime = end,
                         location = loc,
                         priority = priority,
+                        reminderMinutesBefore = reminderMins,
                         existingId = existingId
                     )
                 }
@@ -353,28 +420,36 @@ fun ClayFloatingActionButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.88f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "fab_scale"
+    )
+
     val shape = CircleShape
 
     Box(
         modifier = modifier
             .size(58.dp)
             .graphicsLayer {
-                val scale = if (isPressed) 0.92f else 1f
                 scaleX = scale
                 scaleY = scale
             }
             .shadow(
-                elevation = if (isPressed) 2.dp else 6.dp,
+                elevation = if (isPressed) 2.dp else 8.dp,
                 shape = shape,
-                ambientColor = containerColor.copy(alpha = 0.35f),
-                spotColor = containerColor.copy(alpha = 0.4f)
+                ambientColor = containerColor.copy(alpha = 0.45f),
+                spotColor = containerColor.copy(alpha = 0.5f)
             )
             .background(containerColor, shape = shape)
             .border(
-                width = 1.5.dp,
+                width = 1.8.dp,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        Color.White.copy(alpha = 0.7f),
+                        Color.White.copy(alpha = 0.85f),
                         Color.Transparent
                     ),
                     start = Offset.Zero,

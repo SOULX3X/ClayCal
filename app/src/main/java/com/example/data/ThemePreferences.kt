@@ -34,10 +34,20 @@ class ThemePreferences(context: Context) {
         get() = prefs.getBoolean(KEY_HAS_COMPLETED_TOUR, false)
         set(value) = prefs.edit().putBoolean(KEY_HAS_COMPLETED_TOUR, value).apply()
 
+    var notificationsEnabled: Boolean
+        get() = prefs.getBoolean(KEY_NOTIFICATIONS_ENABLED, true)
+        set(value) = prefs.edit().putBoolean(KEY_NOTIFICATIONS_ENABLED, value).apply()
+
+    var defaultReminderMinutes: Int
+        get() = prefs.getInt(KEY_DEFAULT_REMINDER_MINUTES, 15)
+        set(value) = prefs.edit().putInt(KEY_DEFAULT_REMINDER_MINUTES, value).apply()
+
     companion object {
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_ACCENT = "accent_palette"
         private const val KEY_DEFAULT_EVENTS_CLEANED = "default_events_cleaned"
         private const val KEY_HAS_COMPLETED_TOUR = "has_completed_tour"
+        private const val KEY_NOTIFICATIONS_ENABLED = "notifications_enabled"
+        private const val KEY_DEFAULT_REMINDER_MINUTES = "default_reminder_minutes"
     }
 }

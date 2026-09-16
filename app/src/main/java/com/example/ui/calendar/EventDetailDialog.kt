@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PriorityHigh
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Icon
@@ -180,6 +181,34 @@ fun EventDetailDialog(
                                 text = "Priority: ${event.priority}",
                                 fontSize = 13.sp,
                                 color = ClayColors.TextTertiary
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = "Reminder Notification",
+                                tint = if (event.reminderMinutesBefore >= 0) ClayColors.PrimaryAccent else ClayColors.TextTertiary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            val reminderText = when (event.reminderMinutesBefore) {
+                                -1 -> "Reminder: Disabled"
+                                0 -> "Reminder: At event time"
+                                5 -> "Reminder: 5 mins before"
+                                15 -> "Reminder: 15 mins before"
+                                30 -> "Reminder: 30 mins before"
+                                60 -> "Reminder: 1 hour before"
+                                1440 -> "Reminder: 1 day before"
+                                else -> "Reminder: ${event.reminderMinutesBefore}m before"
+                            }
+                            Text(
+                                text = reminderText,
+                                fontSize = 13.sp,
+                                color = if (event.reminderMinutesBefore >= 0) ClayColors.PrimaryAccent else ClayColors.TextTertiary,
+                                fontWeight = if (event.reminderMinutesBefore >= 0) FontWeight.Medium else FontWeight.Normal
                             )
                         }
                     }

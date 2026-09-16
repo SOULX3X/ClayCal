@@ -70,6 +70,7 @@ import com.example.ui.clay.ClayTextField
 fun EventDialog(
     editingEvent: CalendarEvent?,
     initialDate: SimpleDate,
+    defaultReminderMinutes: Int = 15,
     onDismiss: () -> Unit,
     onSave: (
         title: String,
@@ -80,6 +81,7 @@ fun EventDialog(
         endTime: SimpleTime,
         location: String,
         priority: String,
+        reminderMinutes: Int,
         existingId: Long
     ) -> Unit
 ) {
@@ -93,6 +95,9 @@ fun EventDialog(
     var endMinute by remember { mutableIntStateOf(editingEvent?.endMinute ?: 0) }
     var location by remember { mutableStateOf(editingEvent?.location ?: "") }
     var priority by remember { mutableStateOf(editingEvent?.priority ?: "Medium") }
+    var reminderMinutes by remember {
+        mutableIntStateOf(editingEvent?.reminderMinutesBefore ?: defaultReminderMinutes)
+    }
 
     var titleError by remember { mutableStateOf(false) }
 
@@ -460,6 +465,65 @@ fun EventDialog(
                         }
                     }
 
+                    // Reminder Notification Selector
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Reminder Notification",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = ClayColors.TextTertiary
+                            )
+                            Text(
+                                text = when (reminderMinutes) {
+                                    -1 -> "Disabled"
+                                    0 -> "At event time"
+                                    5 -> "5m before"
+                                    15 -> "15m before"
+                                    30 -> "30m before"
+                                    60 -> "1h before"
+                                    1440 -> "1d before"
+                                    else -> "${reminderMinutes}m before"
+                                },
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (reminderMinutes >= 0) ClayColors.PrimaryAccent else ClayColors.TextTertiary
+                            )
+                        }
+
+                        val reminderOptions = listOf(
+                            Pair("Off", -1),
+                            Pair("At event", 0),
+                            Pair("5m", 5),
+                            Pair("15m", 15),
+                            Pair("30m", 30),
+                            Pair("1h", 60),
+                            Pair("1d", 1440)
+                        )
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            reminderOptions.forEach { (label, minutes) ->
+                                val isSelected = reminderMinutes == minutes
+                                ClayPill(
+                                    text = label,
+                                    isSelected = isSelected,
+                                    onClick = { reminderMinutes = minutes },
+                                    selectedColor = ClayColors.PrimaryAccent,
+                                    unselectedColor = ClayColors.SurfaceSoftClay
+                                )
+                            }
+                        }
+                    }
+
                     // Description Field
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
@@ -511,6 +575,7 @@ fun EventDialog(
                                         SimpleTime(endHour, endMinute),
                                         location,
                                         priority,
+                                        reminderMinutes,
                                         editingEvent?.id ?: 0L
                                     )
                                 }

@@ -16,6 +16,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -232,26 +233,20 @@ fun SettingsDialog(
                         color = ClayColors.TextSecondary
                     )
 
-                    val palettes = listOf(
-                        "Terracotta" to ClayColors.ClayTerracotta,
-                        "Lavender" to ClayColors.ClayLavender,
-                        "Mint" to ClayColors.ClayMint,
-                        "Peach" to ClayColors.ClayPeach,
-                        "Indigo" to ClayColors.ClayIndigo
-                    )
-
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        palettes.forEach { (name, color) ->
-                            val isSelected = activeAccent.equals(name, ignoreCase = true)
+                        ClayColors.PALETTES.forEach { item ->
+                            val isSelected = activeAccent.equals(item.name, ignoreCase = true)
                             AccentColorBubble(
-                                name = name,
-                                color = color,
+                                name = item.name,
+                                color = item.color,
                                 isSelected = isSelected,
-                                onClick = { onAccentChange(name) }
+                                onClick = { onAccentChange(item.name) }
                             )
                         }
                     }
