@@ -1,8 +1,15 @@
 package com.example.ui.calendar
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,12 +34,15 @@ import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -247,9 +257,9 @@ private fun MonthCalendarGridCard(
 ) {
     ClayCard(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(26.dp),
+        shape = RoundedCornerShape(30.dp),
         surfaceColor = ClayColors.SurfaceMarshmallow,
-        elevation = 5.dp
+        elevation = 6.dp
     ) {
         Column(
             modifier = Modifier
@@ -326,9 +336,9 @@ private fun EmptyEventsCard(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(26.dp),
         surfaceColor = ClayColors.SurfaceMarshmallow,
-        elevation = 2.dp
+        elevation = 3.dp
     ) {
         Column(
             modifier = Modifier
@@ -339,7 +349,7 @@ private fun EmptyEventsCard(modifier: Modifier = Modifier) {
         ) {
             Box(
                 modifier = Modifier
-                    .size(52.dp)
+                    .size(54.dp)
                     .background(ClayColors.PrimaryAccent.copy(alpha = 0.15f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
@@ -376,37 +386,94 @@ fun ClayDayCell(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val cellShape = CircleShape
+    val cellShape = RoundedCornerShape(14.dp)
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
 
-    val textColor = when {
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.86f else if (isSelected) 1.06f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "day_cell_scale"
+    )
+
+    val targetBg = when {
+        isSelected -> ClayColors.PrimaryAccent
+        isToday -> ClayColors.PrimaryAccent.copy(alpha = 0.15f)
+        else -> Color.Transparent
+    }
+    val animatedBg by animateColorAsState(
+        targetValue = targetBg,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "day_cell_bg"
+    )
+
+    val targetTextColor = when {
         isSelected -> Color.White
         isToday -> ClayColors.PrimaryAccent
         isCurrentMonth -> ClayColors.TextPrimary
         else -> ClayColors.TextTertiary.copy(alpha = 0.45f)
     }
+    val animatedTextColor by animateColorAsState(
+        targetValue = targetTextColor,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "day_cell_text"
+    )
+
+    val animatedElev by animateDpAsState(
+        targetValue = if (isSelected) 4.dp else 0.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "day_cell_elev"
+    )
 
     Column(
         modifier = modifier
-            .size(40.dp)
+            .size(42.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .clip(cellShape)
-            .clickable(onClick = onClick)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
             .testTag("day_cell_$day"),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(34.dp)
                 .then(
                     if (isSelected) {
                         Modifier
-                            .shadow(3.dp, CircleShape, ambientColor = ClayColors.PrimaryAccent.copy(alpha = 0.35f), spotColor = ClayColors.PrimaryAccent.copy(alpha = 0.4f))
-                            .background(ClayColors.PrimaryAccent, CircleShape)
+                            .shadow(
+                                elevation = animatedElev,
+                                shape = cellShape,
+                                ambientColor = ClayColors.PrimaryAccent.copy(alpha = 0.35f),
+                                spotColor = ClayColors.PrimaryAccent.copy(alpha = 0.4f)
+                            )
+                            .background(animatedBg, cellShape)
+                            .border(
+                                width = 1.2.dp,
+                                brush = Brush.linearGradient(
+                                    colors = listOf(Color.White.copy(alpha = 0.7f), Color.Transparent)
+                                ),
+                                shape = cellShape
+                            )
                     } else if (isToday) {
                         Modifier
-                            .border(1.5.dp, ClayColors.PrimaryAccent, CircleShape)
+                            .background(animatedBg, cellShape)
+                            .border(1.5.dp, ClayColors.PrimaryAccent, cellShape)
                     } else {
-                        Modifier
+                        Modifier.background(animatedBg, cellShape)
                     }
                 ),
             contentAlignment = Alignment.Center
@@ -415,7 +482,7 @@ fun ClayDayCell(
                 text = "$day",
                 fontSize = 14.sp,
                 fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal,
-                color = textColor
+                color = animatedTextColor
             )
         }
 

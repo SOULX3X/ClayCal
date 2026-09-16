@@ -1,5 +1,8 @@
 package com.example.ui.calendar
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -31,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +47,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -91,6 +96,20 @@ fun EventDialog(
 
     var titleError by remember { mutableStateOf(false) }
 
+    var dialogVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        dialogVisible = true
+    }
+
+    val dialogScale by animateFloatAsState(
+        targetValue = if (dialogVisible) 1f else 0.92f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "dialog_scale"
+    )
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -99,6 +118,10 @@ fun EventDialog(
             modifier = Modifier
                 .fillMaxWidth(0.94f)
                 .widthIn(max = 560.dp)
+                .graphicsLayer {
+                    scaleX = dialogScale
+                    scaleY = dialogScale
+                }
                 .padding(vertical = 12.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -106,7 +129,7 @@ fun EventDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.94f),
-                shape = RoundedCornerShape(28.dp),
+                shape = RoundedCornerShape(32.dp),
                 surfaceColor = ClayColors.SurfaceMarshmallow,
                 elevation = 12.dp
             ) {
@@ -246,7 +269,7 @@ fun EventDialog(
                         )
                         ClayCard(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(20.dp),
                             surfaceColor = ClayColors.SurfaceSoftClay,
                             elevation = 2.dp
                         ) {
@@ -299,7 +322,7 @@ fun EventDialog(
                             // Start Time
                             ClayCard(
                                 modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(16.dp),
+                                shape = RoundedCornerShape(20.dp),
                                 surfaceColor = ClayColors.SurfaceSoftClay,
                                 elevation = 2.dp
                             ) {
@@ -341,7 +364,7 @@ fun EventDialog(
                             // End Time
                             ClayCard(
                                 modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(16.dp),
+                                shape = RoundedCornerShape(20.dp),
                                 surfaceColor = ClayColors.SurfaceSoftClay,
                                 elevation = 2.dp
                             ) {
@@ -467,7 +490,7 @@ fun EventDialog(
                             onClick = onDismiss,
                             containerColor = ClayColors.SurfaceSoftClay,
                             contentColor = ClayColors.TextSecondary,
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(20.dp),
                             elevation = 2.dp,
                             modifier = Modifier.weight(1f)
                         ) {
@@ -494,7 +517,7 @@ fun EventDialog(
                             },
                             containerColor = ClayColors.ClayTerracotta,
                             contentColor = Color.White,
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(20.dp),
                             elevation = 6.dp,
                             modifier = Modifier.weight(1.5f).testTag("save_event_button")
                         ) {

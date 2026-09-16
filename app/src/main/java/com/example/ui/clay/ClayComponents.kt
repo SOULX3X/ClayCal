@@ -1,5 +1,6 @@
 package com.example.ui.clay
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -50,7 +51,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun ClayCard(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(24.dp),
+    shape: Shape = RoundedCornerShape(28.dp),
     surfaceColor: Color = ClayColors.SurfaceMarshmallow,
     elevation: Dp = 8.dp,
     borderWidth: Dp = 1.5.dp,
@@ -89,7 +90,7 @@ fun ClayButton(
     modifier: Modifier = Modifier,
     containerColor: Color = ClayColors.ClayTerracotta,
     contentColor: Color = Color.White,
-    shape: Shape = RoundedCornerShape(20.dp),
+    shape: Shape = RoundedCornerShape(24.dp),
     elevation: Dp = 8.dp,
     enabled: Boolean = true,
     content: @Composable RowScope.() -> Unit
@@ -98,10 +99,10 @@ fun ClayButton(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue = if (isPressed && enabled) 0.95f else 1f,
+        targetValue = if (isPressed && enabled) 0.93f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            stiffness = Spring.StiffnessMediumLow
         ),
         label = "button_scale"
     )
@@ -110,7 +111,7 @@ fun ClayButton(
         targetValue = if (isPressed && enabled) 2.dp else elevation,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            stiffness = Spring.StiffnessMediumLow
         ),
         label = "button_elevation"
     )
@@ -175,16 +176,20 @@ fun ClayIconButton(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.92f else 1f,
+        targetValue = if (isPressed) 0.88f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            stiffness = Spring.StiffnessMediumLow
         ),
         label = "icon_btn_scale"
     )
 
     val currentElevation by animateDpAsState(
         targetValue = if (isPressed) 1.dp else elevation,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
         label = "icon_btn_elevation"
     )
 
@@ -243,22 +248,37 @@ fun ClayPill(
     unselectedColor: Color = ClayColors.SurfaceMarshmallow,
     badgeCount: Int? = null
 ) {
-    val shape = RoundedCornerShape(20.dp)
+    val shape = RoundedCornerShape(22.dp)
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
+        targetValue = if (isPressed) 0.93f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            stiffness = Spring.StiffnessMediumLow
         ),
         label = "pill_scale"
     )
 
     val elevation by animateDpAsState(
-        targetValue = if (isSelected) 6.dp else 3.dp,
+        targetValue = if (isPressed) 2.dp else if (isSelected) 6.dp else 3.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
         label = "pill_elev"
+    )
+
+    val animatedBg by animateColorAsState(
+        targetValue = if (isSelected) selectedColor else unselectedColor,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "pill_bg"
+    )
+
+    val animatedTextColor by animateColorAsState(
+        targetValue = if (isSelected) Color.White else ClayColors.TextPrimary,
+        label = "pill_text"
     )
 
     Row(
@@ -275,7 +295,7 @@ fun ClayPill(
                 spotColor = if (isSelected) selectedColor.copy(alpha = 0.35f) else ClayColors.ShadowSpot
             )
             .background(
-                color = if (isSelected) selectedColor else unselectedColor,
+                color = animatedBg,
                 shape = shape
             )
             .border(
@@ -304,7 +324,7 @@ fun ClayPill(
         }
         Text(
             text = text,
-            color = if (isSelected) Color.White else ClayColors.TextPrimary,
+            color = animatedTextColor,
             fontSize = 13.sp,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
         )
@@ -341,13 +361,13 @@ fun ClayTextField(
     maxLines: Int = 1,
     minHeight: Dp = 50.dp
 ) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(22.dp)
 
     Box(
         modifier = modifier
             .defaultMinSize(minHeight = minHeight)
             .shadow(
-                elevation = 2.dp,
+                elevation = 3.dp,
                 shape = shape,
                 ambientColor = ClayColors.ShadowAmbient,
                 spotColor = ClayColors.ShadowSpot
@@ -365,6 +385,7 @@ fun ClayTextField(
                 ),
                 shape = shape
             )
+            .clip(shape)
             .padding(horizontal = 14.dp, vertical = 10.dp),
         contentAlignment = Alignment.CenterStart
     ) {
@@ -415,7 +436,7 @@ fun ClayBadge(
     modifier: Modifier = Modifier,
     iconEmoji: String? = null
 ) {
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(14.dp)
     Row(
         modifier = modifier
             .shadow(
@@ -435,7 +456,8 @@ fun ClayBadge(
                 ),
                 shape = shape
             )
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .clip(shape)
+            .padding(horizontal = 9.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {

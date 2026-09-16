@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 fun Modifier.clayContainer(
-    shape: Shape = RoundedCornerShape(24.dp),
+    shape: Shape = RoundedCornerShape(28.dp),
     surfaceColor: Color = ClayColors.SurfaceMarshmallow,
     elevation: Dp = 8.dp,
     borderWidth: Dp = 1.5.dp,
@@ -54,7 +54,7 @@ fun Modifier.clayContainer(
     )
 
 fun Modifier.clayClickable(
-    shape: Shape = RoundedCornerShape(24.dp),
+    shape: Shape = RoundedCornerShape(28.dp),
     surfaceColor: Color = ClayColors.SurfaceMarshmallow,
     baseElevation: Dp = 8.dp,
     pressedElevation: Dp = 2.dp,
@@ -66,10 +66,10 @@ fun Modifier.clayClickable(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
+        targetValue = if (isPressed) 0.94f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            stiffness = Spring.StiffnessMediumLow
         ),
         label = "clay_scale"
     )
@@ -78,7 +78,7 @@ fun Modifier.clayClickable(
         targetValue = if (isPressed) pressedElevation else baseElevation,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            stiffness = Spring.StiffnessMediumLow
         ),
         label = "clay_elevation"
     )
@@ -105,6 +105,40 @@ fun Modifier.clayClickable(
             ),
             shape = shape
         )
+        .clip(shape)
+        .clickable(
+            interactionSource = interactionSource,
+            indication = null,
+            onClick = onClick
+        )
+}
+
+/**
+ * Interactive squishy spring bounce modifier that adds playful tactile feedback
+ * with soft scale dampening on touch/press.
+ */
+fun Modifier.clayBounceClickable(
+    shape: Shape = RoundedCornerShape(24.dp),
+    pressedScale: Float = 0.93f,
+    onClick: () -> Unit
+): Modifier = composed {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) pressedScale else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "clay_bounce_clickable_scale"
+    )
+
+    this
+        .graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        }
         .clip(shape)
         .clickable(
             interactionSource = interactionSource,

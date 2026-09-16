@@ -1,8 +1,15 @@
 package com.example.ui.calendar
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,12 +32,15 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -407,13 +417,39 @@ fun ClayWeekDayPill(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(20.dp)
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
 
-    val surfaceColor = when {
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.86f else if (isSelected) 1.06f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "pill_scale"
+    )
+
+    val targetSurfaceColor = when {
         isSelected -> ClayColors.PrimaryAccent
         isToday -> ClayColors.PrimaryAccent.copy(alpha = 0.15f)
         else -> ClayColors.SurfaceSoftClay
     }
+    val surfaceColor by animateColorAsState(
+        targetValue = targetSurfaceColor,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "pill_surface_color"
+    )
+
+    val targetElevation = if (isSelected) 6.dp else 1.dp
+    val elevation by animateDpAsState(
+        targetValue = targetElevation,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "pill_elev"
+    )
 
     val textColor = when {
         isSelected -> Color.White
@@ -424,8 +460,12 @@ fun ClayWeekDayPill(
     Box(
         modifier = modifier
             .padding(horizontal = 2.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .shadow(
-                elevation = if (isSelected) 5.dp else 1.dp,
+                elevation = elevation,
                 shape = shape,
                 ambientColor = if (isSelected) ClayColors.PrimaryAccent.copy(alpha = 0.35f) else ClayColors.ShadowAmbient,
                 spotColor = if (isSelected) ClayColors.PrimaryAccent.copy(alpha = 0.4f) else ClayColors.ShadowSpot
@@ -447,7 +487,11 @@ fun ClayWeekDayPill(
                 shape = shape
             )
             .clip(shape)
-            .clickable(onClick = onClick)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
             .padding(vertical = 10.dp),
         contentAlignment = Alignment.Center
     ) {

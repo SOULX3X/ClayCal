@@ -1,12 +1,16 @@
 package com.example.ui.calendar
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +34,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +54,7 @@ import com.example.model.Category
 import com.example.ui.clay.ClayBadge
 import com.example.ui.clay.ClayCard
 import com.example.ui.clay.ClayColors
+import com.example.ui.clay.clayBounceClickable
 
 @Composable
 fun EventItemCard(
@@ -60,15 +66,33 @@ fun EventItemCard(
     modifier: Modifier = Modifier
 ) {
     val category = Category.fromName(event.category)
-    val shape = RoundedCornerShape(22.dp)
+    val shape = RoundedCornerShape(26.dp)
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue = if (event.isCompleted) 0.98f else 1f,
+        targetValue = if (isPressed) 0.95f else if (event.isCompleted) 0.98f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            stiffness = Spring.StiffnessMediumLow
         ),
         label = "event_card_scale"
+    )
+
+    val surfaceColor by animateColorAsState(
+        targetValue = if (event.isCompleted) ClayColors.SurfaceDimmed.copy(alpha = 0.85f) else ClayColors.SurfaceMarshmallow,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "event_surface_color"
+    )
+
+    val elevation by animateDpAsState(
+        targetValue = if (isPressed) 2.dp else if (event.isCompleted) 3.dp else 7.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "event_card_elev"
     )
 
     ClayCard(
@@ -78,11 +102,15 @@ fun EventItemCard(
                 scaleX = scale
                 scaleY = scale
             }
-            .clickable(onClick = onClick)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
             .testTag("event_item_${event.id}"),
         shape = shape,
-        surfaceColor = if (event.isCompleted) ClayColors.SurfaceDimmed.copy(alpha = 0.85f) else ClayColors.SurfaceMarshmallow,
-        elevation = if (event.isCompleted) 3.dp else 6.dp
+        surfaceColor = surfaceColor,
+        elevation = elevation
     ) {
         Row(
             modifier = Modifier
@@ -245,13 +273,41 @@ fun ClayCheckbox(
     accentColor: Color,
     modifier: Modifier = Modifier
 ) {
+    val checkboxShape = RoundedCornerShape(10.dp)
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
     val scale by animateFloatAsState(
-        targetValue = if (checked) 0.92f else 1f,
+        targetValue = if (isPressed) 0.82f else if (checked) 1.04f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            stiffness = Spring.StiffnessMediumLow
         ),
         label = "checkbox_scale"
+    )
+
+    val checkmarkScale by animateFloatAsState(
+        targetValue = if (checked) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "checkmark_scale"
+    )
+
+    val animatedBg by animateColorAsState(
+        targetValue = if (checked) accentColor else ClayColors.SurfaceMarshmallow,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "checkbox_bg"
+    )
+
+    val animatedElevation by animateDpAsState(
+        targetValue = if (isPressed) 1.dp else if (checked) 2.dp else 4.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "checkbox_elev"
     )
 
     Box(
@@ -262,14 +318,14 @@ fun ClayCheckbox(
                 scaleY = scale
             }
             .shadow(
-                elevation = if (checked) 2.dp else 4.dp,
-                shape = CircleShape,
+                elevation = animatedElevation,
+                shape = checkboxShape,
                 ambientColor = if (checked) accentColor.copy(alpha = 0.35f) else ClayColors.ShadowAmbient,
                 spotColor = if (checked) accentColor.copy(alpha = 0.4f) else ClayColors.ShadowSpot
             )
             .background(
-                color = if (checked) accentColor else ClayColors.SurfaceMarshmallow,
-                shape = CircleShape
+                color = animatedBg,
+                shape = checkboxShape
             )
             .border(
                 width = 1.5.dp,
@@ -280,19 +336,27 @@ fun ClayCheckbox(
                         listOf(Color.White.copy(alpha = 0.9f), ClayColors.ShadowBevel.copy(alpha = 0.35f))
                     }
                 ),
-                shape = CircleShape
+                shape = checkboxShape
             )
-            .clip(CircleShape)
-            .clickable { onCheckedChange(!checked) }
+            .clip(checkboxShape)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) { onCheckedChange(!checked) }
             .testTag("clay_checkbox"),
         contentAlignment = Alignment.Center
     ) {
-        if (checked) {
+        if (checkmarkScale > 0.05f) {
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = "Completed",
                 tint = Color.White,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier
+                    .size(16.dp)
+                    .graphicsLayer {
+                        scaleX = checkmarkScale
+                        scaleY = checkmarkScale
+                    }
             )
         }
     }

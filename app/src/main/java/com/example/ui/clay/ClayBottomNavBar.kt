@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,6 +64,8 @@ fun ClayBottomNavBar(
     onTabSelected: (MainNavTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val navBarShape = RoundedCornerShape(32.dp)
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -73,56 +76,61 @@ fun ClayBottomNavBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .shadow(
-                    elevation = 10.dp,
-                    shape = RoundedCornerShape(28.dp),
+                    elevation = 12.dp,
+                    shape = navBarShape,
                     ambientColor = ClayColors.ShadowAmbient,
                     spotColor = ClayColors.ShadowSpot
                 )
                 .background(
                     color = ClayColors.SurfaceMarshmallow,
-                    shape = RoundedCornerShape(28.dp)
+                    shape = navBarShape
                 )
                 .border(
                     width = 1.5.dp,
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color.White.copy(alpha = 0.9f),
+                            Color.White.copy(alpha = 0.95f),
                             ClayColors.ShadowBevel.copy(alpha = 0.4f)
                         )
                     ),
-                    shape = RoundedCornerShape(28.dp)
+                    shape = navBarShape
                 )
-                .padding(horizontal = 8.dp, vertical = 6.dp),
+                .clip(navBarShape)
+                .padding(horizontal = 10.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
             MainNavTab.entries.forEach { tab ->
                 val isSelected = tab == selectedTab
                 val interactionSource = remember { MutableInteractionSource() }
+                val isPressed by interactionSource.collectIsPressedAsState()
 
                 val scale by animateFloatAsState(
-                    targetValue = if (isSelected) 1.05f else 1f,
+                    targetValue = if (isPressed) 0.88f else if (isSelected) 1.08f else 1f,
                     animationSpec = spring(
                         dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessLow
+                        stiffness = Spring.StiffnessMediumLow
                     ),
                     label = "tab_scale"
                 )
 
                 val iconColor by animateColorAsState(
                     targetValue = if (isSelected) ClayColors.PrimaryAccent else ClayColors.TextTertiary,
+                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
                     label = "tab_color"
                 )
+
+                val tabPillShape = RoundedCornerShape(16.dp)
 
                 Column(
                     modifier = Modifier
                         .testTag(tab.tag)
-                        .clip(RoundedCornerShape(18.dp))
+                        .clip(tabPillShape)
                         .clickable(
                             interactionSource = interactionSource,
                             indication = null
                         ) { onTabSelected(tab) }
-                        .padding(horizontal = 14.dp, vertical = 6.dp)
+                        .padding(horizontal = 14.dp, vertical = 4.dp)
                         .graphicsLayer {
                             scaleX = scale
                             scaleY = scale
@@ -132,13 +140,18 @@ fun ClayBottomNavBar(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(38.dp)
                             .then(
                                 if (isSelected) {
                                     Modifier
                                         .background(
                                             color = ClayColors.PrimaryAccent.copy(alpha = 0.16f),
-                                            shape = CircleShape
+                                            shape = tabPillShape
+                                        )
+                                        .border(
+                                            width = 1.dp,
+                                            color = ClayColors.PrimaryAccent.copy(alpha = 0.25f),
+                                            shape = tabPillShape
                                         )
                                 } else Modifier
                             ),
@@ -155,7 +168,7 @@ fun ClayBottomNavBar(
                     Text(
                         text = tab.label,
                         fontSize = 11.sp,
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                         color = iconColor
                     )
                 }
